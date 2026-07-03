@@ -21,7 +21,7 @@ import { loggerService } from '@logger'
 import CopyButton from '@renderer/components/CopyButton'
 import { WorkspaceSelector } from '@renderer/components/resourceCatalog/selectors'
 import Scrollbar from '@renderer/components/Scrollbar'
-import { SettingDivider, SettingsContentBody, SettingTitle } from '@renderer/components/SettingsPrimitives'
+import { SettingsContentBody, SettingTitle } from '@renderer/components/SettingsPrimitives'
 import { useQuery } from '@renderer/data/hooks/useDataApi'
 import { useAgents } from '@renderer/hooks/agent/useAgent'
 import { useChannels } from '@renderer/hooks/agent/useChannels'
@@ -92,10 +92,10 @@ function formatTime(ts: number): string {
 }
 
 const LOG_LEVEL_COLORS: Record<string, string> = {
-  error: '#ff4d4f',
-  warn: '#faad14',
-  info: '#1677ff',
-  debug: '#8c8c8c'
+  error: 'var(--color-error-base)',
+  warn: 'var(--color-warning-base)',
+  info: 'var(--color-info-base)',
+  debug: 'var(--color-foreground-muted)'
 }
 
 const NO_AGENT_VALUE = '__none'
@@ -154,14 +154,15 @@ const ChannelLogModal: FC<{
             {logs.length > 0 && <CopyButton textToCopy={logsText} size={14} />}
           </DialogTitle>
         </DialogHeader>
-        <div className="max-h-100 overflow-y-auto rounded-md bg-background-subtle p-2 font-mono text-[11px] leading-[1.6]">
+        <div className="text-(length:--font-size-body-xs) max-h-100 overflow-y-auto rounded-md bg-background-subtle p-2 font-mono leading-[1.6]">
           {logs.length === 0 && (
             <div className="py-8 text-center text-muted-foreground text-xs">{t('agent.channels.noLogs')}</div>
           )}
           {logs.map((entry, i) => (
             <div key={i} className="flex gap-2 whitespace-pre-wrap py-px">
               <span className="shrink-0 text-muted-foreground">{formatTime(entry.timestamp)}</span>
-              <span style={{ color: LOG_LEVEL_COLORS[entry.level] ?? '#8c8c8c', fontWeight: 500 }}>
+              <span
+                style={{ color: LOG_LEVEL_COLORS[entry.level] ?? 'var(--color-foreground-muted)', fontWeight: 500 }}>
                 [{entry.level.toUpperCase()}]
               </span>
               <span className="break-all">{entry.message}</span>
@@ -331,18 +332,18 @@ const ChannelInstanceRow: FC<{
   let statusTag: React.ReactNode = null
   if (channel.isActive) {
     if (isConnected) {
-      statusColor = 'bg-green-500'
+      statusColor = 'bg-success'
       statusTag = (
-        <Badge className="border-success/30 bg-success/10 px-1.5 py-0 text-[10px] text-success leading-3.5">
-          {t('agent.channels.connected')}
+        <Badge className="text-(length:--font-size-body-2xs) border-success-border bg-success-bg px-1.5 py-0 text-success leading-3.5">
+          {t('agent.cherryClaw.channels.connected')}
         </Badge>
       )
     } else if (hasError) {
-      statusColor = 'bg-red-500'
+      statusColor = 'bg-destructive'
       statusTag = (
         <Tooltip title={hasError}>
-          <Badge className="border-destructive/30 bg-destructive/10 px-1.5 py-0 text-[10px] text-destructive leading-3.5">
-            {t('agent.channels.error')}
+          <Badge className="text-(length:--font-size-body-2xs) border-error-border bg-error-bg px-1.5 py-0 text-destructive leading-3.5">
+            {t('agent.cherryClaw.channels.error')}
           </Badge>
         </Tooltip>
       )
@@ -358,7 +359,7 @@ const ChannelInstanceRow: FC<{
           {statusTag}
         </div>
         <div className="truncate text-foreground-400 text-xs">
-          {agentName && <span className="mr-2 text-blue-400">{agentName}</span>}
+          {agentName && <span className="mr-2 text-info">{agentName}</span>}
           {summary}
         </div>
       </div>
@@ -538,8 +539,7 @@ const ChannelDetail: FC<ChannelDetailProps> = ({ channelDef }) => {
             {t('agent.channels.add')}
           </Button>
         </div>
-        <SettingDivider className="m-0 mt-2" />
-        <div className="flex flex-col">
+        <div className="mt-2 flex flex-col rounded-xl border border-border/60 px-3 py-1">
           {channelList.length === 0 && (
             <EmptyState
               compact
