@@ -5,7 +5,7 @@ import type { EndpointType, Model } from '@shared/data/types/model'
 import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
 import { CodeCli, TerminalApp } from '@shared/types/codeCli'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -19,7 +19,10 @@ const testState = vi.hoisted(() => ({
   setTimeoutTimer: vi.fn(),
   providers: [] as Provider[],
   models: [] as Model[],
-  modelSelectorProps: [] as any[]
+  modelSelectorProps: [] as any[],
+  dialogMountCount: 0,
+  dialogUnmountCount: 0,
+  settingsNavigate: vi.fn()
 }))
 
 import CodeCliPage from '../CodeCliPage'
@@ -48,8 +51,15 @@ vi.mock('@cherrystudio/ui', async () => {
       }),
     Label: ({ children, htmlFor, className }: { children: React.ReactNode; htmlFor?: string; className?: string }) =>
       React.createElement('label', { htmlFor, className }, children),
-    Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
-      open ? React.createElement('div', { role: 'dialog' }, children) : null,
+    Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) => {
+      React.useEffect(() => {
+        testState.dialogMountCount += 1
+        return () => {
+          testState.dialogUnmountCount += 1
+        }
+      }, [])
+      return open ? React.createElement('div', { role: 'dialog' }, children) : null
+    },
     DialogContent: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
     DialogHeader: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
     DialogTitle: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
@@ -93,6 +103,14 @@ vi.mock('@renderer/components/ModelSelector', async () => {
             onClick: () => props.onSelect('openai::gpt-4o')
           },
           'select mock model'
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            onClick: () => props.onSettingsNavigate?.(testState.settingsNavigate)
+          },
+          'open model settings'
         )
       )
     }
@@ -252,7 +270,35 @@ function latestModelSelectorProps() {
   return testState.modelSelectorProps.at(-1)
 }
 
+function mockDeferredAnimationFrames() {
+  const callbacks: FrameRequestCallback[] = []
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    callbacks.push(callback)
+    return callbacks.length
+  })
+
+  return {
+    pendingCount: () => callbacks.length,
+    flushAllFrames: () => {
+      while (callbacks.length > 0) {
+        const pendingCallbacks = callbacks.splice(0)
+        act(() => {
+          for (const callback of pendingCallbacks) {
+            callback(0)
+          }
+        })
+      }
+    }
+  }
+}
+
 describe('CodeCliPage', () => {
+  beforeEach(() => {
+    testState.dialogMountCount = 0
+    testState.dialogUnmountCount = 0
+    testState.settingsNavigate.mockReset()
+  })
+
   it('uses the shared model selector for non-copilot tools and writes selected ids back', async () => {
     testState.selectedCliTool = CodeCli.QWEN_CODE
 
@@ -270,6 +316,26 @@ describe('CodeCliPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'select mock model' }))
 
     await waitFor(() => expect(testState.setModel).toHaveBeenCalledWith('openai::gpt-4o'))
+  })
+
+  it('closes and recreates the tool dialog before running model settings navigation', async () => {
+    testState.selectedCliTool = CodeCli.QWEN_CODE
+
+    await openCodeToolDialog()
+    const frames = mockDeferredAnimationFrames()
+    const mountCountAfterOpen = testState.dialogMountCount
+
+    fireEvent.click(screen.getByRole('button', { name: 'open model settings' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(testState.dialogUnmountCount).toBeGreaterThan(0)
+    expect(testState.dialogMountCount).toBeGreaterThan(mountCountAfterOpen)
+    expect(testState.settingsNavigate).not.toHaveBeenCalled()
+
+    await waitFor(() => expect(frames.pendingCount()).toBeGreaterThan(0))
+    frames.flushAllFrames()
+
+    expect(testState.settingsNavigate).toHaveBeenCalledTimes(1)
   })
 
   it('does not pass malformed stored model ids to the shared model selector', async () => {

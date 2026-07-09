@@ -50,7 +50,7 @@ import {
 import { isAnthropicProvider, isOpenAIProvider } from '@shared/utils/provider'
 import { Check, ChevronDown, FolderOpen } from 'lucide-react'
 import type { FC } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CLI_TOOL_PROVIDER_MAP, CLI_TOOLS, isOpenCodeProvider, OPENAI_CODEX_SUPPORTED_PROVIDERS } from './cliTools'
@@ -108,7 +108,9 @@ const CodeCliPage: FC = () => {
   const [terminalCustomPaths, setTerminalCustomPaths] = useState<Record<string, string>>({})
 
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogKey, setDialogKey] = useState(0)
   const [modelSelectorPortalContainer, setModelSelectorPortalContainer] = useState<HTMLDivElement | null>(null)
+  const pendingDialogCloseActionRef = useRef<(() => void) | null>(null)
 
   const rawModelId = useCallback((m: Model) => m.apiModelId ?? parseUniqueModelId(m.id).modelId, [])
 
@@ -492,6 +494,37 @@ const CodeCliPage: FC = () => {
     void loadAvailableTerminals()
   }, [loadAvailableTerminals])
 
+  const runPendingDialogCloseAction = useCallback(() => {
+    const action = pendingDialogCloseActionRef.current
+    if (!action) return
+
+    pendingDialogCloseActionRef.current = null
+    action()
+  }, [])
+  const closeDialogBeforeAction = useCallback(
+    (action: () => void) => {
+      pendingDialogCloseActionRef.current = action
+      if (!dialogOpen) {
+        setDialogKey((key) => key + 1)
+        runPendingDialogCloseAction()
+        return
+      }
+
+      setDialogKey((key) => key + 1)
+      setDialogOpen(false)
+    },
+    [dialogOpen, runPendingDialogCloseAction]
+  )
+
+  useEffect(() => {
+    if (dialogOpen) {
+      return undefined
+    }
+
+    const frameId = window.requestAnimationFrame(runPendingDialogCloseAction)
+    return () => window.cancelAnimationFrame(frameId)
+  }, [dialogOpen, runPendingDialogCloseAction])
+
   const handleSelectTool = async (tool: CodeCli) => {
     if (tool !== selectedCliTool) {
       try {
@@ -540,7 +573,7 @@ const CodeCliPage: FC = () => {
         />
 
         {activeMeta && (
-          <Dialog open={dialogOpen} onOpenChange={(next) => !next && setDialogOpen(false)}>
+          <Dialog key={dialogKey} open={dialogOpen} onOpenChange={(next) => !next && setDialogOpen(false)}>
             <DialogContent closeOnOverlayClick={false} aria-describedby={undefined}>
               <div ref={setModelSelectorPortalContainer} className="contents">
                 <DialogHeader>
@@ -559,7 +592,7 @@ const CodeCliPage: FC = () => {
                         filter={codeCliModelFilter}
                         showTagFilter={false}
                         portalContainer={modelSelectorPortalContainer}
-                        onSettingsNavigate={() => setDialogOpen(false)}
+                        onSettingsNavigate={closeDialogBeforeAction}
                         trigger={renderModelSelectorTrigger()}
                       />
                     </div>
