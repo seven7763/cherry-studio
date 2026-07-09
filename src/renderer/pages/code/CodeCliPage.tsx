@@ -63,6 +63,13 @@ const logger = loggerService.withContext('CodeCliPage')
 
 type CliToolOption = (typeof CLI_TOOLS)[number]
 type LaunchStatus = 'idle' | 'launching' | 'success'
+type LaunchEnvironmentResult =
+  | {
+      env: Record<string, string>
+    }
+  | {
+      error: 'no-enabled-api-key'
+    }
 
 const toMeta = (tool: CliToolOption): CodeToolMeta => ({
   id: tool.value,
@@ -332,9 +339,7 @@ const CodeCliPage: FC = () => {
     return { isValid: true }
   }
 
-  const prepareLaunchEnvironment = async (): Promise<{
-    env: Record<string, string>
-  } | null> => {
+  const prepareLaunchEnvironment = async (): Promise<LaunchEnvironmentResult | null> => {
     if (selectedCliTool === CodeCli.GITHUB_COPILOT_CLI || selectedCliTool === CodeCli.QODER_CLI) {
       const userEnv = parseEnvironmentVariables(environmentVariables)
       return { env: userEnv }
@@ -358,12 +363,17 @@ const CodeCliPage: FC = () => {
 
     let apiKey = ''
     try {
-      const { keys } = (await dataApiService.get(`/providers/${modelProvider.id}/api-keys`)) as {
+      const { keys } = (await dataApiService.get(`/providers/${modelProvider.id}/api-keys`, {
+        query: { enabled: true }
+      })) as {
         keys: ApiKeyEntry[]
       }
-      apiKey = keys.find((k) => k.isEnabled)?.key ?? keys[0]?.key ?? ''
+      apiKey = keys[0]?.key ?? ''
     } catch (error) {
       logger.error(`Failed to load api keys for provider: ${modelProvider.id}`, error as Error)
+    }
+    if (!apiKey) {
+      return { error: 'no-enabled-api-key' }
     }
 
     const id = resolvedModel.apiModelId ?? parseUniqueModelId(resolvedModel.id).modelId
@@ -471,6 +481,11 @@ const CodeCliPage: FC = () => {
       const result = await prepareLaunchEnvironment()
       if (!result) {
         toast.error(t('code.model_required'))
+        setLaunchStatus('idle')
+        return
+      }
+      if ('error' in result) {
+        toast.error(t('settings.models.check.no_api_keys'))
         setLaunchStatus('idle')
         return
       }

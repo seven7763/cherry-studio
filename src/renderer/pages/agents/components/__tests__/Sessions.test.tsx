@@ -945,8 +945,8 @@ describe('Sessions', () => {
 
     render(<SessionsForTest onStartDraftSession={onStartDraftSession} />)
 
-    expect(screen.getByText('No tasks')).toBeInTheDocument()
-    expect(screen.getByText('No tasks').closest('.h-full')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No tasks' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No tasks' }).closest('.h-full')).toBeInTheDocument()
     expect(screen.queryByText('Tasks will appear here after you start one.')).not.toBeInTheDocument()
     expect(getHeaderNewTaskButton()).toBeInTheDocument()
     expect(onStartDraftSession).not.toHaveBeenCalled()
