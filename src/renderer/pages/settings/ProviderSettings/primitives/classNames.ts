@@ -429,7 +429,7 @@ export const modelSyncClasses = {
   fetchWarning:
     'my-2 gap-2 rounded-[length:var(--radius-lg)] border-[color:color-mix(in_srgb,var(--color-warning-base)_35%,transparent)] bg-[color:color-mix(in_srgb,var(--color-warning-bg)_52%,transparent)] px-2.5 py-2 text-[length:var(--font-size-body-xs)] leading-[var(--line-height-body-xs)] shadow-none [&_[data-slot=alert-icon]]:mt-0 [&_[data-slot=alert-icon]_svg]:size-3.5 [&_[data-slot=alert-message]]:font-normal',
   fetchRowNew:
-    'flex min-h-9 cursor-pointer items-center gap-2 rounded-[length:var(--radius-lg)] border border-transparent px-2.5 py-2 transition-colors hover:border-border/60 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-ring/30 data-[checked=true]:border-border/40 data-[checked=true]:bg-background',
+    'flex min-h-9 cursor-pointer items-center gap-2 rounded-[length:var(--radius-lg)] border border-transparent px-2.5 py-2 transition-colors hover:border-border-muted hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-ring/30 data-[checked=true]:border-border-subtle data-[checked=true]:bg-background',
   fetchRowRemoved:
     'flex min-h-9 cursor-pointer items-center gap-2 rounded-[length:var(--radius-lg)] border border-transparent px-2.5 py-2 transition-colors hover:border-destructive/15 hover:bg-destructive/[0.03] focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-ring/30 data-[checked=true]:border-destructive/15 data-[checked=true]:bg-background',
   fetchAvatar:
