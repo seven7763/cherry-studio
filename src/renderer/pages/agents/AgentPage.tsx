@@ -52,7 +52,7 @@ import { useTranslation } from 'react-i18next'
 import HistoryRecordsPage from '../history/HistoryRecordsPage'
 import AgentChat from './AgentChat'
 import AgentSidePanel from './AgentSidePanel'
-import { AgentConversationPickerDialog } from './components/AgentConversationPickerDialog'
+import { AgentCreateDialog } from './components/AgentCreateDialog'
 import Sessions from './components/Sessions'
 import { parseAgentRouteSearch } from './routeSearch'
 import type { DraftAgentSession, DraftAgentSessionDefaults, PersistentAgentSessionConversation } from './types'
@@ -96,7 +96,7 @@ const AgentPage = () => {
   const [autoCollapsedResourceList, setAutoCollapsedResourceList] = useState(false)
   const isClassicSessionLayout = sessionDisplayMode === 'agent'
   // Classic layout shares this full-sessions source with the rail; modern layout leaves it disabled (no fetch).
-  // The picker uses it to reuse an empty placeholder session instead of stacking new ones.
+  // The add-agent flow uses it to reuse an empty placeholder session instead of stacking new ones.
   const {
     sessions: classicLayoutSessions,
     isLoadingAll: isClassicSessionLayoutLoading = false,
@@ -153,7 +153,7 @@ const AgentPage = () => {
   const [replacingDraftWorkspace, setReplacingDraftWorkspace] = useState(false)
   const [replacingSessionWorkspace, setReplacingSessionWorkspace] = useState(false)
   const [missingAgentDraft, setMissingAgentDraft] = useState(false)
-  const [agentPickerOpen, setAgentPickerOpen] = useState(false)
+  const [agentCreateOpen, setAgentCreateOpen] = useState(false)
   const { t } = useTranslation()
   const invalidateCache = useInvalidateCache()
   const { setSessionWorkspace } = useUpdateSession()
@@ -469,11 +469,10 @@ const AgentPage = () => {
     async (agentId: string) => {
       if (isCreatingClassicEmptySessionRef.current) return
       isCreatingClassicEmptySessionRef.current = true
-      // Close the picker first so the session/state churn below doesn't refresh the dialog while it's
-      // still visible (which reads as a black/white flash + the dialog reopening).
-      setAgentPickerOpen(false)
+      // Close the dialog first so the session/state churn below doesn't refresh it while it's still visible.
+      setAgentCreateOpen(false)
       try {
-        // Reuse the agent's latest empty placeholder regardless of workspace — the picker resolves a
+        // Reuse the agent's latest empty placeholder regardless of workspace — the add flow resolves a
         // fresh workspace below only when it has to create one. See findReusableEmptySession.
         const reusableSession = findReusableEmptySession(
           classicLayoutSessions,
@@ -509,12 +508,12 @@ const AgentPage = () => {
         if (!reusableSession) {
           void invalidateCache(['/agent-sessions', '/agent-workspaces', `/agent-sessions/${session.id}`]).catch(
             (err) => {
-              logger.warn('Failed to refresh session metadata after agent picker session create', err as Error)
+              logger.warn('Failed to refresh session metadata after agent session create', err as Error)
             }
           )
         }
       } catch (err) {
-        logger.error('Failed to create agent session from classic-layout picker', err as Error, { agentId })
+        logger.error('Failed to create agent session from classic-layout add flow', err as Error, { agentId })
         toast.error(formatErrorMessageWithPrefix(err, t('agent.session.create.error.failed')))
       } finally {
         isCreatingClassicEmptySessionRef.current = false
@@ -531,6 +530,18 @@ const AgentPage = () => {
       setDraftSessionState,
       t
     ]
+  )
+
+  const handleAgentCreated = useCallback(
+    async (agentId: string) => {
+      if (isClassicSessionLayout) {
+        await handleAgentConversationSelect(agentId)
+        return
+      }
+
+      await startDraftSession({ agentId })
+    },
+    [handleAgentConversationSelect, isClassicSessionLayout, startDraftSession]
   )
 
   const startMissingAgentDraft = useCallback(() => {
@@ -991,7 +1002,7 @@ const AgentPage = () => {
       <AgentResourceList
         activeAgentId={activeResourceAgentId}
         onAddAgent={() => {
-          setAgentPickerOpen(true)
+          setAgentCreateOpen(true)
         }}
         onOpenHistoryRecords={openHistoryRecords}
         onSelectSession={handleResourceSessionSelect}
@@ -1009,7 +1020,7 @@ const AgentPage = () => {
         activeSessionId={activeSessionId}
         onActiveAgentDeleted={handleActiveAgentDeleted}
         onAddAgent={() => {
-          setAgentPickerOpen(true)
+          setAgentCreateOpen(true)
         }}
         revealRequest={sessionRevealRequest}
         onOpenHistoryRecords={openHistoryRecords}
@@ -1130,15 +1141,7 @@ const AgentPage = () => {
         onClose={closeHistoryRecords}
         onRecordSelect={handleHistoryRecordsSessionSelect}
       />
-      {isClassicSessionLayout && (
-        <AgentConversationPickerDialog
-          open={agentPickerOpen}
-          onOpenChange={setAgentPickerOpen}
-          agents={agents}
-          agentsLoading={isAgentsLoading}
-          onSelect={handleAgentConversationSelect}
-        />
-      )}
+      <AgentCreateDialog open={agentCreateOpen} onOpenChange={setAgentCreateOpen} onCreated={handleAgentCreated} />
     </Container>
   )
 }
