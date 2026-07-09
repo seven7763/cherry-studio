@@ -119,7 +119,7 @@ export const SettingRowTitle = ({
   }, [isPlainText, labelText])
 
   const baseClassName = cn(
-    'text-(length:--font-size-body-xs) flex min-w-0 flex-1 items-center font-normal text-foreground leading-4.5',
+    'text-(length:--font-size-body-13) flex min-w-0 flex-1 items-center font-normal text-foreground leading-4.5',
     className
   )
 
