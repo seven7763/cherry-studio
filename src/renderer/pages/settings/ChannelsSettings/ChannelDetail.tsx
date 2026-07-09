@@ -150,7 +150,7 @@ const ChannelLogModal: FC<{
       <DialogContent className="max-w-150">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-sm font-bold">
-            <span>{`${channelName} — ${t('agent.cherryClaw.channels.logs')}`}</span>
+            <span>{`${channelName} — ${t('agent.channels.logs')}`}</span>
             {logs.length > 0 && <CopyButton textToCopy={logsText} size={14} />}
           </DialogTitle>
         </DialogHeader>
@@ -267,7 +267,7 @@ const ChannelEditModal: FC<EditModalProps> = ({ open, channel, agents, onClose, 
                 />
               </div>
               <div>
-                <label className="mb-1 block font-normal text-xs">{t('agent.cherryClaw.channels.bindAgent')}</label>
+                <label className="mb-1 block font-normal text-xs">{t('agent.channels.bindAgent')}</label>
                 <Select value={agentId ?? NO_AGENT_VALUE} onValueChange={handleAgentChange}>
                   <SelectTrigger size="sm" className="w-full">
                     <SelectValue placeholder={t('agent.channels.selectAgent')} />

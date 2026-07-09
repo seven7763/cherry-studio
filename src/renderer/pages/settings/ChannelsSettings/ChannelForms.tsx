@@ -70,7 +70,7 @@ const ChannelPermissionMode: FC<ChannelFormProps> = ({ channel, onConfigChange }
   const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-1">
-      <label className="font-normal text-xs">{t('agent.cherryClaw.channels.security.permissionMode')}</label>
+      <label className="font-normal text-xs">{t('agent.channels.security.permissionMode')}</label>
       <Select
         value={channel.permissionMode ?? INHERIT_PERMISSION_MODE_VALUE}
         onValueChange={(value) =>
@@ -183,7 +183,7 @@ const ChannelFieldsForm: FC<ChannelFieldsFormProps> = ({
               content={
                 <div className="flex flex-col gap-1.5">
                   <span>{chatIdsConfig.hint}</span>
-                  {idsKey === 'allowed_chat_ids' && <span>{t('agent.cherryClaw.channels.chatIdsAutoTrackHint')}</span>}
+                  {idsKey === 'allowed_chat_ids' && <span>{t('agent.channels.chatIdsAutoTrackHint')}</span>}
                 </div>
               }
               iconProps={{ size: 12, className: 'shrink-0 cursor-pointer text-foreground-muted' }}
@@ -222,9 +222,9 @@ export const TelegramForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) 
       fields={[
         {
           key: 'bot_token',
-          label: t('agent.cherryClaw.channels.telegram.botToken'),
+          label: t('agent.channels.telegram.botToken'),
           placeholder: '123456789:xxxxxxxxxxxxxxxxxxxxxxxxxxx',
-          hint: t('agent.cherryClaw.channels.telegram.botTokenPlaceholder'),
+          hint: t('agent.channels.telegram.botTokenPlaceholder'),
           secret: true
         }
       ]}
@@ -242,7 +242,7 @@ const FeishuDomainSelector: FC<ChannelFormProps> = ({ channel, onConfigChange })
   const cfg = channel.config
   return (
     <div>
-      <label className="mb-1 block font-normal text-xs">{t('agent.cherryClaw.channels.feishu.domain')}</label>
+      <label className="mb-1 block font-normal text-xs">{t('agent.channels.feishu.domain')}</label>
       <Select
         value={(cfg.domain as FeishuDomain) ?? 'feishu'}
         onValueChange={(value) => onConfigChange({ config: { ...cfg, domain: value as FeishuDomain } })}>
@@ -294,19 +294,17 @@ export const FeishuForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) =>
             <Alert
               type="info"
               showIcon
-              message={<span className="font-normal">{t('agent.cherryClaw.channels.feishu.loginHint')}</span>}
+              message={<span className="font-normal">{t('agent.channels.feishu.loginHint')}</span>}
               className="gap-2 border-[var(--color-info-border)] px-2.5 py-2 text-xs shadow-none [&_svg]:size-3.5"
             />
           )}
           {(status === 'pending' || status === 'expired') && (
             <div className="flex items-center gap-2">
-              {status === 'pending' && (
-                <span className="text-info text-xs">{t('agent.cherryClaw.channels.feishu.qrHint')}</span>
-              )}
+              {status === 'pending' && <span className="text-info text-xs">{t('agent.channels.feishu.qrHint')}</span>}
               {status === 'expired' && (
                 <>
                   <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
-                  <span className="text-destructive text-xs">{t('agent.cherryClaw.channels.feishu.qrExpired')}</span>
+                  <span className="text-destructive text-xs">{t('agent.channels.feishu.qrExpired')}</span>
                 </>
               )}
             </div>
@@ -330,23 +328,23 @@ export const FeishuForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) =>
           },
           {
             key: 'app_secret',
-            label: t('agent.cherryClaw.channels.feishu.appSecret'),
+            label: t('agent.channels.feishu.appSecret'),
             placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxx',
-            hint: t('agent.cherryClaw.channels.feishu.appSecretPlaceholder'),
+            hint: t('agent.channels.feishu.appSecretPlaceholder'),
             secret: true
           },
           {
             key: 'encrypt_key',
-            label: t('agent.cherryClaw.channels.feishu.encryptKey'),
+            label: t('agent.channels.feishu.encryptKey'),
             placeholder: 'xxxxxxxxxxxxxxxx',
-            hint: t('agent.cherryClaw.channels.feishu.encryptKeyPlaceholder'),
+            hint: t('agent.channels.feishu.encryptKeyPlaceholder'),
             secret: true
           },
           {
             key: 'verification_token',
-            label: t('agent.cherryClaw.channels.feishu.verificationToken'),
+            label: t('agent.channels.feishu.verificationToken'),
             placeholder: 'xxxxxxxxxxxxxxxx',
-            hint: t('agent.cherryClaw.channels.feishu.verificationTokenPlaceholder'),
+            hint: t('agent.channels.feishu.verificationTokenPlaceholder'),
             secret: true
           }
         ]}
@@ -388,9 +386,9 @@ export const DiscordForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) =
       fields={[
         {
           key: 'bot_token',
-          label: t('agent.cherryClaw.channels.discord.botToken'),
+          label: t('agent.channels.discord.botToken'),
           placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-          hint: t('agent.cherryClaw.channels.discord.botTokenPlaceholder'),
+          hint: t('agent.channels.discord.botTokenPlaceholder'),
           secret: true,
           span: 2
         }
@@ -416,15 +414,15 @@ export const QQForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) => {
       fields={[
         {
           key: 'app_id',
-          label: t('agent.cherryClaw.channels.qq.appId'),
+          label: t('agent.channels.qq.appId'),
           placeholder: '123456789',
-          hint: t('agent.cherryClaw.channels.qq.appIdPlaceholder')
+          hint: t('agent.channels.qq.appIdPlaceholder')
         },
         {
           key: 'client_secret',
-          label: t('agent.cherryClaw.channels.qq.clientSecret'),
+          label: t('agent.channels.qq.clientSecret'),
           placeholder: 'xxxxxxxxxxxxxxxx',
-          hint: t('agent.cherryClaw.channels.qq.clientSecretPlaceholder'),
+          hint: t('agent.channels.qq.clientSecretPlaceholder'),
           secret: true
         }
       ]}
@@ -483,7 +481,7 @@ export const WeChatForm: FC<ChannelFormProps & { onRemove?: () => void }> = ({ c
           <Alert
             type="info"
             showIcon
-            message={<span className="font-normal">{t('agent.cherryClaw.channels.wechat.loginHint')}</span>}
+            message={<span className="font-normal">{t('agent.channels.wechat.loginHint')}</span>}
             className="gap-2 border-[var(--color-info-border)] px-2.5 py-2 text-xs shadow-none [&_svg]:size-3.5"
           />
         )}
@@ -492,13 +490,13 @@ export const WeChatForm: FC<ChannelFormProps & { onRemove?: () => void }> = ({ c
             {status === 'confirmed' && (
               <>
                 <span className="inline-block h-2 w-2 rounded-full bg-success" />
-                <span className="text-success text-xs">{t('agent.cherryClaw.channels.wechat.connected')}</span>
+                <span className="text-success text-xs">{t('agent.channels.wechat.connected')}</span>
               </>
             )}
             {status === 'disconnected' && (
               <>
                 <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
-                <span className="text-destructive text-xs">{t('agent.cherryClaw.channels.wechat.disconnected')}</span>
+                <span className="text-destructive text-xs">{t('agent.channels.wechat.disconnected')}</span>
               </>
             )}
           </div>
