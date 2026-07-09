@@ -24,8 +24,8 @@ import {
   type FileProcessingMenuEntry,
   flattenFeatureSections,
   getFeatureSections,
-  getFileProcessingFeatureScenarioTipKey,
   getFileProcessingFeatureTitleKey,
+  getFileProcessingFeatureTooltipKey,
   getProcessorNameKey
 } from './utils/fileProcessingMeta'
 
@@ -78,7 +78,7 @@ const FileProcessingSettings: FC = () => {
                   <div className={cn(settingsSubmenuSectionTitleClassName, 'flex items-center gap-1')}>
                     {t(getFileProcessingFeatureTitleKey(section.feature))}
                     <InfoTooltip
-                      content={t(getFileProcessingFeatureScenarioTipKey(section.feature))}
+                      content={t(getFileProcessingFeatureTooltipKey(section.feature))}
                       placement="right"
                       iconProps={{ size: 13, className: 'cursor-pointer' }}
                     />

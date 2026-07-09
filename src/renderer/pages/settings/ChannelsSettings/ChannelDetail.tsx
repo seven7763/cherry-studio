@@ -335,7 +335,7 @@ const ChannelInstanceRow: FC<{
       statusColor = 'bg-success'
       statusTag = (
         <Badge className="text-(length:--font-size-body-2xs) border-success-border bg-success-bg px-1.5 py-0 text-success leading-3.5">
-          {t('agent.cherryClaw.channels.connected')}
+          {t('agent.channels.connected')}
         </Badge>
       )
     } else if (hasError) {
@@ -343,7 +343,7 @@ const ChannelInstanceRow: FC<{
       statusTag = (
         <Tooltip title={hasError}>
           <Badge className="text-(length:--font-size-body-2xs) border-error-border bg-error-bg px-1.5 py-0 text-destructive leading-3.5">
-            {t('agent.cherryClaw.channels.error')}
+            {t('agent.channels.error')}
           </Badge>
         </Tooltip>
       )
