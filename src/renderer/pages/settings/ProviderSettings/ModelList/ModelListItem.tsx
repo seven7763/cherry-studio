@@ -55,7 +55,7 @@ const ModelListItem: React.FC<ModelListItemProps> = ({ ref, model, disabled, onE
         {(() => {
           const Icon = getModelLogo(model)
           return Icon ? (
-            <Icon.Avatar size={26} />
+            <Icon.Avatar size={26} className="[&_svg]:scale-90" />
           ) : (
             <Avatar className={modelListClasses.rowAvatar}>
               <AvatarFallback>{model.name?.[0]?.toUpperCase()}</AvatarFallback>

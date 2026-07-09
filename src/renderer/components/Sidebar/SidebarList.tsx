@@ -72,7 +72,7 @@ function IconList({ entries, active, onReorder, onContextMenuOpenChange }: ListP
                 className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-150 [&_svg]:text-current ${
                   isActive ? 'bg-accent text-foreground' : 'text-foreground/80 hover:bg-accent/60 hover:text-foreground'
                 }`}>
-                {entry.renderIcon(18, 'lg')}
+                {entry.renderIcon(16, 'lg')}
               </button>
             </EntryContextMenu>
           </SidebarTooltip>

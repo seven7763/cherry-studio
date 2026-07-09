@@ -75,7 +75,7 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
               {citation.type === 'websearch' && hostname ? (
                 <Favicon hostname={hostname} alt={citation.title || ''} />
               ) : (
-                <FileSearch size={12} strokeWidth={2} />
+                <FileSearch size={12} />
               )}
             </div>
           )
