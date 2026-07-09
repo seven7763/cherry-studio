@@ -3950,6 +3950,7 @@
   },
   "models": {
     "action": {
+      "configure_custom": "Configure custom models",
       "pin": "Pin this model",
       "unpin": "Unpin model"
     },

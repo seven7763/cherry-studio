@@ -3933,6 +3933,7 @@
   },
   "models": {
     "action": {
+      "configure_custom": "[to be translated]:Configure custom models",
       "pin": "Fixează acest model",
       "unpin": "Dezactivează modelul"
     },
