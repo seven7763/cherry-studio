@@ -10,6 +10,7 @@ interface UseMentionedModelSelectorParams {
   topicId: string
   mentionedModels: Model[]
   setMentionedModels: (models: Model[]) => void
+  preserveSingleMentionedModelOnRuntimeMatch?: boolean
   /** Applies a single model to the assistant (the composer's `handleModelSelect`). */
   onModelSelect: (model: Model | undefined) => void | Promise<unknown>
 }
@@ -35,6 +36,7 @@ export function useChatMentionedModels({
   topicId,
   mentionedModels,
   setMentionedModels,
+  preserveSingleMentionedModelOnRuntimeMatch,
   onModelSelect
 }: UseMentionedModelSelectorParams): UseMentionedModelSelectorResult {
   const [mentionedModelMultiSelectMode, setMentionedModelMultiSelectMode] = useState(false)
@@ -58,7 +60,12 @@ export function useChatMentionedModels({
     )
     setMentionedModelMultiSelectMode(false)
 
-    if (!isInitialSelection && currentMentionedModels.length > 0) {
+    const isRuntimeMatchedSingleMention =
+      preserveSingleMentionedModelOnRuntimeMatch &&
+      currentMentionedModels.length === 1 &&
+      selectedModel?.id === currentMentionedModels[0]?.id
+
+    if (!isInitialSelection && currentMentionedModels.length > 0 && !isRuntimeMatchedSingleMention) {
       setMentionedModels([])
     }
   })

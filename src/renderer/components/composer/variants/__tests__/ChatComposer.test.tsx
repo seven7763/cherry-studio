@@ -1004,6 +1004,39 @@ describe('ChatComposer', () => {
     expect(toast.error).not.toHaveBeenCalledWith('code.model_required')
   })
 
+  it('keeps the selected unlinked home model after the optimistic default-model rerender', async () => {
+    mocks.assistant = undefined
+    mocks.model = undefined
+    const onSend = vi.fn()
+
+    const view = render(<ChatHomeComposer topic={unlinkedTopic} onSend={onSend} />)
+
+    fireEvent.click(screen.getByText('select model 2'))
+    expect(mocks.setDefaultModel).toHaveBeenCalledWith(modelB.id)
+    expect(mocks.setMentionedModels).toHaveBeenLastCalledWith([modelB])
+
+    mocks.model = modelB
+    view.rerender(<ChatHomeComposer topic={unlinkedTopic} onSend={onSend} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('model-selector')).toHaveAttribute('data-value-count', '1')
+    })
+    expect(mocks.setMentionedModels).toHaveBeenLastCalledWith([modelB])
+    expect(mocks.mentionedModels).toEqual([modelB])
+
+    view.rerender(<ChatHomeComposer topic={unlinkedTopic} onSend={onSend} />)
+
+    await mocks.surfaceProps?.onSendDraft({ text: 'hello', tokens: [] })
+
+    expect(onSend).toHaveBeenCalledWith(
+      'hello',
+      expect.objectContaining({
+        mentionedModels: [modelB.id]
+      })
+    )
+    expect(toast.error).not.toHaveBeenCalledWith('code.model_required')
+  })
+
   it('keeps the selected unlinked home model when multi-select is disabled before sending', async () => {
     mocks.assistant = undefined
     mocks.model = undefined

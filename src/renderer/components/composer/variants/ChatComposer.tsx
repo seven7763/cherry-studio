@@ -528,6 +528,7 @@ const ChatComposerInner = ({
     topicId: scopeKey,
     mentionedModels,
     setMentionedModels,
+    preserveSingleMentionedModelOnRuntimeMatch: !assistant && !assistantId,
     onModelSelect: handleModelSelect
   })
 
