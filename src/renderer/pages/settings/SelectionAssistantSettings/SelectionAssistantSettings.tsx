@@ -1,4 +1,4 @@
-import { Button, RadioGroup, RadioGroupItem, Slider, Switch, Tooltip } from '@cherrystudio/ui'
+import { Button, RadioGroup, RadioGroupItem, SettingsPageHeader, Slider, Switch, Tooltip } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import SelectionToolbarView from '@renderer/components/selection/SelectionToolbarView'
 import {
@@ -8,7 +8,6 @@ import {
   SettingRow,
   SettingRowTitle,
   SettingsContentColumn,
-  SettingsPageHeader,
   SettingTitle
 } from '@renderer/components/SettingsPrimitives'
 import { useTheme } from '@renderer/hooks/useTheme'

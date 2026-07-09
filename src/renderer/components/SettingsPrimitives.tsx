@@ -70,33 +70,6 @@ export const SettingTitle = ({ className, ...props }: React.ComponentPropsWithou
   <div className={cn('flex select-none items-center justify-between font-medium text-sm', className)} {...props} />
 )
 
-// Canonical 2-column page header: leading icon + 16px semibold title + optional description / action.
-// Renders an <h1> for accessibility; pages should use this at the top, then SettingTitle for group titles below.
-export const SettingsPageHeader = ({
-  icon,
-  title,
-  description,
-  action,
-  className,
-  ...rest
-}: Omit<React.ComponentPropsWithoutRef<'div'>, 'title'> & {
-  icon?: React.ReactNode
-  title: React.ReactNode
-  description?: React.ReactNode
-  action?: React.ReactNode
-}) => (
-  <div className={cn('flex items-start justify-between gap-3', className)} {...rest}>
-    <div className="min-w-0">
-      <div className="flex items-center gap-2 text-foreground">
-        {icon ? <span className="inline-flex shrink-0 [&_svg]:size-5 [&_svg]:text-foreground">{icon}</span> : null}
-        <h1 className="m-0 select-none font-[550] text-lg leading-6">{title}</h1>
-      </div>
-      {description ? <p className="m-0 mt-1.5 text-foreground-muted text-xs">{description}</p> : null}
-    </div>
-    {action}
-  </div>
-)
-
 // Subtitle inside a SettingCard for nested subsections (14px medium, foreground).
 export const SettingSubtitle = ({
   ref,

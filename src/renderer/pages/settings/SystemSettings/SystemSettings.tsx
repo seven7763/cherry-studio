@@ -1,4 +1,4 @@
-import { Flex, InfoTooltip, Input, Switch } from '@cherrystudio/ui'
+import { Flex, InfoTooltip, Input, SettingsPageHeader, Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import Selector from '@renderer/components/Selector'
 import {
@@ -7,7 +7,6 @@ import {
   SettingRow,
   SettingRowTitle,
   SettingsContentColumn,
-  SettingsPageHeader,
   SettingTitle
 } from '@renderer/components/SettingsPrimitives'
 import { useTheme } from '@renderer/hooks/useTheme'

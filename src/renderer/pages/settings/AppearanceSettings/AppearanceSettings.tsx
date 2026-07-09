@@ -7,6 +7,7 @@ import {
   Flex,
   InfoTooltip,
   SegmentedControl,
+  SettingsPageHeader,
   Switch,
   Tooltip
 } from '@cherrystudio/ui'
@@ -22,7 +23,6 @@ import {
   SettingRow,
   SettingRowTitle,
   SettingsContentColumn,
-  SettingsPageHeader,
   SettingTitle
 } from '@renderer/components/SettingsPrimitives'
 import { useCodeStyle } from '@renderer/hooks/useCodeStyle'

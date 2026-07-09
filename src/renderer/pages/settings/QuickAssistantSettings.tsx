@@ -1,4 +1,4 @@
-import { Combobox, InfoTooltip, RowFlex, SegmentedControl, Switch } from '@cherrystudio/ui'
+import { Combobox, InfoTooltip, RowFlex, SegmentedControl, SettingsPageHeader, Switch } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
 import {
@@ -6,8 +6,7 @@ import {
   SettingGroup,
   SettingRow,
   SettingRowTitle,
-  SettingsContentColumn,
-  SettingsPageHeader
+  SettingsContentColumn
 } from '@renderer/components/SettingsPrimitives'
 import { useAssistants } from '@renderer/hooks/useAssistant'
 import { useDefaultModel } from '@renderer/hooks/useModel'

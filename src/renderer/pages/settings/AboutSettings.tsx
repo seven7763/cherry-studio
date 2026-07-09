@@ -1,4 +1,12 @@
-import { Badge, Button, CircularProgress, SegmentedControl, Switch, Tooltip } from '@cherrystudio/ui'
+import {
+  Badge,
+  Button,
+  CircularProgress,
+  SegmentedControl,
+  SettingsPageHeader,
+  Switch,
+  Tooltip
+} from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import AppLogo from '@renderer/assets/images/logo.png'
 import LogoAvatar from '@renderer/components/icons/LogoAvatar'
@@ -9,8 +17,7 @@ import {
   SettingGroup,
   SettingRow,
   SettingRowTitle,
-  SettingsContentColumn,
-  SettingsPageHeader
+  SettingsContentColumn
 } from '@renderer/components/SettingsPrimitives'
 import { useAppUpdateState } from '@renderer/hooks/useAppUpdate'
 import { useMiniAppPopup } from '@renderer/hooks/useMiniAppPopup'

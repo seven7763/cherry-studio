@@ -1,12 +1,11 @@
-import { InfoTooltip, Switch } from '@cherrystudio/ui'
+import { InfoTooltip, SettingsPageHeader, Switch } from '@cherrystudio/ui'
 import { useMultiplePreferences } from '@data/hooks/usePreference'
 import {
   SettingCard,
   SettingGroup,
   SettingRow,
   SettingRowTitle,
-  SettingsContentColumn,
-  SettingsPageHeader
+  SettingsContentColumn
 } from '@renderer/components/SettingsPrimitives'
 import { useTheme } from '@renderer/hooks/useTheme'
 import type { NotificationSource } from '@renderer/types/notification'

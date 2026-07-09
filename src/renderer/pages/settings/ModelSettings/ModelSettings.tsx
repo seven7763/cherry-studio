@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, Button, PageSidePanel, Tooltip } from '@cherrystudio/ui'
+import { Avatar, AvatarFallback, Button, PageSidePanel, SettingsPageHeader, Tooltip } from '@cherrystudio/ui'
 import { resolveIcon } from '@cherrystudio/ui/icons'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
@@ -9,8 +9,7 @@ import {
   SettingGroup,
   SettingRow,
   SettingRowTitle,
-  SettingsContentColumn,
-  SettingsPageHeader
+  SettingsContentColumn
 } from '@renderer/components/SettingsPrimitives'
 import { useDefaultModel } from '@renderer/hooks/useModel'
 import { useProviders } from '@renderer/hooks/useProvider'

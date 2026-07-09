@@ -88,6 +88,8 @@ vi.mock('@cherrystudio/ui', async () => {
     PopoverTrigger: ({ children, asChild }: any) =>
       asChild && React.isValidElement(children) ? children : React.createElement('div', null, children),
     RowFlex: passthrough('div'),
+    SettingsPageHeader: ({ title, description }: { title?: React.ReactNode; description?: React.ReactNode }) =>
+      React.createElement('header', null, title, description),
     SegmentedControl: ({ options = [], value, onValueChange }: any) =>
       React.createElement(
         'div',
@@ -176,8 +178,6 @@ vi.mock('@renderer/components/SettingsPrimitives', async () => {
     SettingRowTitle: passthrough('div'),
     SettingsContentBody: passthrough('main'),
     SettingsContentColumn: passthrough('main'),
-    SettingsPageHeader: ({ title, description }: { title?: React.ReactNode; description?: React.ReactNode }) =>
-      React.createElement('header', null, title, description),
     SettingTitle: passthrough('h2')
   }
 })

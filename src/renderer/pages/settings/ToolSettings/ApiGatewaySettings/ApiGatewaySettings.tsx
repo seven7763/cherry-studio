@@ -1,11 +1,10 @@
-import { Button, ButtonGroup, IndicatorLight, Input, Tooltip } from '@cherrystudio/ui'
+import { Button, ButtonGroup, IndicatorLight, Input, SettingsPageHeader, Tooltip } from '@cherrystudio/ui'
 import {
   SettingCard,
   SettingGroup,
   SettingRow,
   SettingRowTitle,
-  SettingsContentColumn,
-  SettingsPageHeader
+  SettingsContentColumn
 } from '@renderer/components/SettingsPrimitives'
 import { useApiGateway } from '@renderer/hooks/useApiGateway'
 import { useTheme } from '@renderer/hooks/useTheme'

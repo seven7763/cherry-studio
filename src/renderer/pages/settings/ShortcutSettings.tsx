@@ -8,13 +8,14 @@ import {
   PopoverContent,
   PopoverTrigger,
   RowFlex,
+  SettingsPageHeader,
   Switch,
   Tooltip
 } from '@cherrystudio/ui'
 import { preferenceService } from '@data/PreferenceService'
 import { loggerService } from '@logger'
 import Scrollbar from '@renderer/components/Scrollbar'
-import { SettingsContentBody, SettingsPageHeader } from '@renderer/components/SettingsPrimitives'
+import { SettingsContentBody } from '@renderer/components/SettingsPrimitives'
 import {
   getAllShortcutDefaultPreferences,
   type ShortcutSettingsGroup,

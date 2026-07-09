@@ -9,12 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
+  SettingsPageHeader,
   Tooltip
 } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { Icon } from '@iconify/react'
 import { loggerService } from '@logger'
-import { SettingsPageHeader } from '@renderer/components/SettingsPrimitives'
 import { ipcApi, useIpcOn } from '@renderer/ipc'
 import { toast } from '@renderer/services/toast'
 import { formatErrorMessage } from '@renderer/utils/error'
