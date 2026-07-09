@@ -122,7 +122,11 @@ export class PersistentChatContextProvider implements ChatContextProvider {
   ): Promise<PreparedDispatch> {
     // 1. Resolve context
     const topic = topicService.getById(req.topicId)
-    const { assistantId, defaultModelId } = resolveAssistantModelId(topic?.assistantId)
+    const selectedModelId = 'mentionedModelIds' in req ? req.mentionedModelIds?.[0] : undefined
+    const { assistantId, defaultModelId } =
+      topic && !topic.assistantId && selectedModelId
+        ? { assistantId: undefined, defaultModelId: selectedModelId }
+        : resolveAssistantModelId(topic?.assistantId)
 
     // continue-conversation reuses the existing assistant anchor — no new placeholder, no multi-model.
     if (req.trigger === 'continue-conversation') {

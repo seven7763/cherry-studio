@@ -533,6 +533,8 @@ const ChatComposerInner = ({
 
   const selectedModelForMissingAssistantDefault =
     assistant && !assistant.modelId ? mentionedModelSelectorValue[0] : undefined
+  const selectedModelForUnlinkedHomeDefault =
+    !assistant && !assistantId && useMentionedModelSelector ? mentionedModelSelectorValue[0] : undefined
   const lockedMentionedModels =
     editingMessageForCurrentTopic?.lockedMentionedModels &&
     editingMessageForCurrentTopic.lockedMentionedModels.length > 1
@@ -938,7 +940,7 @@ const ChatComposerInner = ({
         return
       }
 
-      if (!runtimeModel && !selectedModelForMissingAssistantDefault) {
+      if (!runtimeModel && !selectedModelForMissingAssistantDefault && !selectedModelForUnlinkedHomeDefault) {
         toast.error(t('code.model_required'))
         return
       }
@@ -1002,6 +1004,7 @@ const ChatComposerInner = ({
       runtimeModelPending,
       selectedKnowledgeBases,
       selectedModelForMissingAssistantDefault,
+      selectedModelForUnlinkedHomeDefault,
       sendDisabled,
       selectAssistantMessage,
       sendQueuedPayload,

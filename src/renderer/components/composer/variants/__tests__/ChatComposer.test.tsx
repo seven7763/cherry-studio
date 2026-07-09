@@ -982,6 +982,28 @@ describe('ChatComposer', () => {
     expect(mocks.setMentionedModels).toHaveBeenCalledWith([modelB])
   })
 
+  it('sends the selected unlinked home model when no default model is resolved', async () => {
+    mocks.assistant = undefined
+    mocks.model = undefined
+    const onSend = vi.fn()
+
+    render(<ChatHomeComposer topic={unlinkedTopic} onSend={onSend} />)
+
+    expect(mocks.surfaceProps?.sendBlockedReason).toBe('code.model_required')
+
+    fireEvent.click(screen.getByText('select model 2'))
+
+    await mocks.surfaceProps?.onSendDraft({ text: 'hello', tokens: [] })
+
+    expect(onSend).toHaveBeenCalledWith(
+      'hello',
+      expect.objectContaining({
+        mentionedModels: [modelB.id]
+      })
+    )
+    expect(toast.error).not.toHaveBeenCalledWith('code.model_required')
+  })
+
   it('hides the active assistant trigger from the toolbar in classic layout', () => {
     mocks.topicLayout = 'classic'
 

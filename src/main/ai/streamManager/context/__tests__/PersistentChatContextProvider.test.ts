@@ -232,6 +232,8 @@ describe('PersistentChatContextProvider — steer continuation history', () => {
       { hasLiveStream: false }
     )
 
+    expect(resolveModels).toHaveBeenLastCalledWith([MODEL_A, MODEL_B], MODEL_A)
+
     // Shared sibling group + multi-model flag.
     expect(prepared.siblingsGroupId).toBe(42)
     expect(prepared.isMultiModel).toBe(true)
