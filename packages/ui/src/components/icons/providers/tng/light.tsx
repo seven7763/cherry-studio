@@ -10,7 +10,7 @@ const TngLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="16.89 16.49 86.22 87.02"
+      viewBox="24.62 45.01 72.11 29.97"
       {...props}>
       <g clipPath={`url(#${iconId}-tnglight__a)`}>
         <path

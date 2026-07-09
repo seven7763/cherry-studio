@@ -10,7 +10,7 @@ const UpstageLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="16.89 16.49 86.22 87.02"
+      viewBox="35.72 30.28 51.28 60.8"
       {...props}>
       <g clipPath={`url(#${iconId}-upstagelight__a)`}>
         <path

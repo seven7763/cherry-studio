@@ -10,7 +10,7 @@ const CerebrasLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="16.89 16.49 86.22 87.02"
+      viewBox="25.36 25.36 53.65 69.28"
       {...props}>
       <g clipPath={`url(#${iconId}-cerebraslight__a)`}>
         <path

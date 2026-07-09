@@ -7,7 +7,7 @@ const GemmaLight: IconComponent = (props: SVGProps<SVGSVGElement>) => (
     width="1em"
     height="1em"
     fill="none"
-    viewBox="12.52 41.13 189.33 304.22"
+    viewBox="3.52 -15.48 417.96 417.96"
     {...props}>
     <path
       fill="#328CFF"

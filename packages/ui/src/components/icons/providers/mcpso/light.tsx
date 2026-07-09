@@ -10,7 +10,7 @@ const McpsoLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="16.89 16.49 86.22 87.02"
+      viewBox="23.9 23.22 71.52 74.24"
       {...props}>
       <g clipPath={`url(#${iconId}-mcpsolight__a)`}>
         <path

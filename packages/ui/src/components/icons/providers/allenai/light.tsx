@@ -7,7 +7,7 @@ const AllenaiLight: IconComponent = (props: SVGProps<SVGSVGElement>) => (
     width="1em"
     height="1em"
     fill="none"
-    viewBox="18.49 16.1 83.82 86.6"
+    viewBox="21.73 22.76 75.99 75.31"
     {...props}>
     <path
       fill="#F8F0E9"

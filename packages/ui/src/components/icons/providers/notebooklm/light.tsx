@@ -12,6 +12,7 @@ const NotebooklmLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       fill="none"
       viewBox="15.25 15.25 89.51 89.51"
       {...props}>
+      <path fill="#EAEAEA" d="M15.25 15.25H104.76V104.76H15.25z" />
       <g clipPath={`url(#${iconId}-notebooklmlight__a)`}>
         <path
           fill="#EAEAEA"

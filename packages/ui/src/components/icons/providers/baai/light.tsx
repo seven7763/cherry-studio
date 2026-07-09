@@ -10,7 +10,7 @@ const BaaiLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="15.25 15.25 89.51 89.51"
+      viewBox="10.73 10.73 98.52 98.52"
       {...props}>
       <g clipPath={`url(#${iconId}-baailight__a)`}>
         <path

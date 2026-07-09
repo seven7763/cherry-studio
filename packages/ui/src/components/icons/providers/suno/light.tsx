@@ -10,7 +10,7 @@ const SunoLight: IconComponent = (props: SVGProps<SVGSVGElement>) => {
       width="1em"
       height="1em"
       fill="none"
-      viewBox="15.25 15.25 89.51 89.51"
+      viewBox="33.82 33.82 52.36 52.36"
       {...props}>
       <g clipPath={`url(#${iconId}-sunolight__a)`}>
         <path
