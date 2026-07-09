@@ -5,14 +5,19 @@ import { defineRoute } from '../define'
 /**
  * App IPC schemas — imperative app-level operations delegated to main services.
  *
- * Currently only the updater routes (handled by `AppUpdaterService`). Update
- * *progress/result events* are NOT here: they still reach the renderer through
- * the legacy `IpcChannel.Update*` broadcasts in `AppUpdaterService`, so there is
- * no Event block.
- *
- * Request-only: renderer→main calls, always parsed. Both take no input.
+ * Update *progress/result events* are NOT here: they still reach the renderer
+ * through the legacy `IpcChannel.Update*` broadcasts in `AppUpdaterService`, so
+ * there is no Event block.
  */
 export const appRequestSchemas = {
+  'app.set_user_data_path': defineRoute({
+    input: z.object({
+      path: z.string().min(1),
+      copy: z.boolean(),
+      overwrite: z.boolean()
+    }),
+    output: z.void()
+  }),
   'app.updater.check_for_update': defineRoute({
     input: z.void(),
     output: z.object({

@@ -1,4 +1,5 @@
 import { application } from '@application'
+import { requestRelocation } from '@main/core/preboot/userDataLocation'
 import type { appRequestSchemas } from '@shared/ipc/schemas/app'
 import type { IpcHandlersFor } from '@shared/ipc/types'
 
@@ -11,6 +12,9 @@ import type { IpcHandlersFor } from '@shared/ipc/types'
  * the route's `z.void()` output.
  */
 export const appHandlers: IpcHandlersFor<typeof appRequestSchemas> = {
+  'app.set_user_data_path': async (input) => {
+    requestRelocation(application.getPath('app.userdata'), input.path, input.copy, input.overwrite)
+  },
   'app.updater.check_for_update': async () => {
     const { currentVersion, updateInfo } = await application.get('AppUpdaterService').checkForUpdates()
     // `currentVersion` may be a SemVer (autoUpdater.currentVersion) or a string

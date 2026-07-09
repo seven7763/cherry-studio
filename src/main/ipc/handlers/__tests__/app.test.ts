@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { appGetMock } = vi.hoisted(() => ({ appGetMock: vi.fn() }))
-vi.mock('@application', () => ({ application: { get: appGetMock } }))
+const { appGetMock, appGetPathMock, requestRelocationMock } = vi.hoisted(() => ({
+  appGetMock: vi.fn(),
+  appGetPathMock: vi.fn(),
+  requestRelocationMock: vi.fn()
+}))
+vi.mock('@application', () => ({ application: { get: appGetMock, getPath: appGetPathMock } }))
+vi.mock('@main/core/preboot/userDataLocation', () => ({ requestRelocation: requestRelocationMock }))
 
 import { appHandlers } from '../app'
 
@@ -12,6 +17,7 @@ const appUpdaterService = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  appGetPathMock.mockReturnValue('/old/data')
   appGetMock.mockImplementation((name: string) => {
     if (name === 'AppUpdaterService') return appUpdaterService
     throw new Error(`Unexpected application.get(${name})`)
@@ -23,6 +29,13 @@ beforeEach(() => {
 const ctx = { senderId: 'w1' }
 
 describe('appHandlers', () => {
+  it('set_user_data_path records a pending userData relocation request', async () => {
+    const result = await appHandlers['app.set_user_data_path']({ path: '/new/data', copy: true, overwrite: false }, ctx)
+
+    expect(requestRelocationMock).toHaveBeenCalledWith('/old/data', '/new/data', true, false)
+    expect(result).toBeUndefined()
+  })
+
   it('check_for_update delegates to AppUpdaterService and passes the result through', async () => {
     const updateInfo = { version: '2.0.0' }
     appUpdaterService.checkForUpdates.mockResolvedValue({ currentVersion: '1.0.0', updateInfo })

@@ -101,9 +101,7 @@ renderer copied the unlocked bulk while running, and the main process
 copied the occupied dirs during the next startup's narrow "no renderer
 yet" window. v2 abandons that distinction entirely — the whole directory
 is copied at startup **after** the previous process has fully exited, so
-nothing is locked. See `occupiedDirs` in
-`src/renderer/pages/settings/DataSettings/BasicDataSettings.tsx` for the
-deprecated v1 constant.
+nothing is locked.
 
 ## Layout
 
@@ -114,7 +112,8 @@ preboot/
 │                        dev instances with different userData suffixes use
 │                        isolated locks.
 ├── userDataLocation.ts  decides where userData lives (dev suffix or
-│                        BootConfig-driven), performs relaunch copy
+│                        BootConfig-driven) and exposes relocation
+│                        request/commit helpers
 ├── chromiumFlags.ts     Chromium startup flags (command-line switches and
 │                        hardware-acceleration toggles) that must run
 │                        before app.whenReady()
@@ -127,12 +126,19 @@ preboot/
 │                        detect v1 legacy userData before engine init.
 │                        Temporary — scoped for deletion once all
 │                        users have migrated off v1.
+├── relocation/          executes a pending userData relocation before
+│   ├── relocationGate.ts    normal startup: opens a dedicated progress
+│   │                        window, copies or switches userData,
+│   │                        commits BootConfig, and relaunches.
+│   └── RelocationWindowManager.ts  owns the dedicated BrowserWindow
+│                                    before lifecycle WindowManager exists.
 └── __tests__/           unit tests for each sibling module
 ```
 
 The directory is intentionally flat. New domains add a sibling file rather
 than a subdirectory. Subdirectories are reserved for the case where one
-domain genuinely needs multiple files.
+domain genuinely needs multiple files — `relocation/` is the current
+example.
 
 ### Development userData suffix
 
