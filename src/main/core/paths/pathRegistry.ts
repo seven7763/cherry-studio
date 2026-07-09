@@ -86,6 +86,10 @@ export function buildPathRegistry() {
       ? path.join(appExtraResources, 'provider-registry')
       : path.join(__dirname, '../../packages/provider-registry/data'),
 
+    // Remote-updated override copy of the registry JSON, preferred over the
+    // bundled data when present (see ProviderRegistryUpdaterService). Writable.
+    'feature.provider_registry.override': path.join(appUserData, 'provider-registry-override'),
+
     // BinaryManager (tool manager)
     'feature.binary.data': path.join(CHERRY_HOME, 'binary-manager'),
     'feature.binary.state_file': path.join(CHERRY_HOME, 'binary-manager', 'state.json'),

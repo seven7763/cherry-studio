@@ -1,0 +1,106 @@
+name: Sync provider-registry data
+
+# Publishes the regenerated provider/model catalog to the `registry-data` branch
+# so running apps can pick up new models without an app release
+# (see src/main/services/ProviderRegistryUpdaterService.ts).
+#
+# The catalog on `main` (packages/provider-registry/data/*.json, regenerated and
+# committed by the catalog-source-sync CI on every metadata PR) is the source of
+# truth — this job only MIRRORS it into a schema-version dir on `registry-data`.
+#
+# Each v{N}/ dir holds the three catalog files plus a manifest.json (written by
+# this job) carrying `releaseFloor` — the app refuses data whose floor is older
+# than its own version, so a lagging mirror can never downgrade a fresh install.
+#
+# One-time bootstrap (the branch must exist before this runs), from a clean repo:
+#   git checkout --orphan registry-data && git rm -rf .
+#   mkdir -p v1 && cp <main>/packages/provider-registry/data/*.json v1/
+#   git add v1 && git commit -m "chore(provider-registry): init registry-data" && git push origin registry-data
+#   (the manifest.json is created automatically on the first workflow run)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/provider-registry/data/**'
+      # A REGISTRY_SCHEMA_VERSION bump changes the publish dir (v{N}); watch its
+      # source so a version-only change still creates the new vN/ directory.
+      - 'packages/provider-registry/src/registry-loader.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-registry-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: main
+          fetch-depth: 1
+
+      - name: Checkout registry-data branch
+        uses: actions/checkout@v6
+        with:
+          ref: registry-data
+          path: pub
+          fetch-depth: 1
+
+      - name: Resolve schema-version dir
+        id: ver
+        run: |
+          # Single source of truth: REGISTRY_SCHEMA_VERSION in the package source.
+          # Publishing to the matching v{N} dir is what keeps old apps on a
+          # schema they can parse — see the constant's doc comment.
+          VER=$(grep -oE 'REGISTRY_SCHEMA_VERSION = [0-9]+' \
+            main/packages/provider-registry/src/registry-loader.ts | grep -oE '[0-9]+' | head -n1)
+          if [ -z "$VER" ]; then
+            echo "Could not resolve REGISTRY_SCHEMA_VERSION from registry-loader.ts" >&2
+            exit 1
+          fi
+          echo "dir=v$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Copy catalog into version dir
+        run: |
+          DEST="pub/${{ steps.ver.outputs.dir }}"
+          mkdir -p "$DEST"
+          cp main/packages/provider-registry/data/models.json \
+             main/packages/provider-registry/data/providers.json \
+             main/packages/provider-registry/data/provider-models.json \
+             "$DEST/"
+
+      - name: Write release manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # releaseFloor = latest published release. Clients refuse data whose
+          # floor is older than their own version, so a lagging mirror can never
+          # downgrade a freshly-upgraded app below its bundled catalog. Using the
+          # latest release (not HEAD) keeps the floor tied to shipped data.
+          FLOOR=$(gh api "repos/${{ github.repository }}/releases/latest" --jq '.tag_name' 2>/dev/null | sed 's/^v//' || true)
+          if [ -z "$FLOOR" ] || [ "$FLOOR" = "null" ]; then
+            FLOOR=$(jq -r '.version' main/package.json)
+          fi
+          printf '{\n  "releaseFloor": "%s"\n}\n' "$FLOOR" > "pub/${{ steps.ver.outputs.dir }}/manifest.json"
+
+      - name: Commit and push if changed
+        working-directory: pub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.ver.outputs.dir }}"
+          if git diff --cached --quiet; then
+            echo "No catalog changes to publish."
+            exit 0
+          fi
+          git commit -m "chore(provider-registry): sync catalog to ${{ steps.ver.outputs.dir }}" \
+            -m "Source: ${{ github.repository }}@${{ github.sha }}
+          Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          git push origin registry-data
