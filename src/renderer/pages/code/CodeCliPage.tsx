@@ -559,6 +559,7 @@ const CodeCliPage: FC = () => {
                         filter={codeCliModelFilter}
                         showTagFilter={false}
                         portalContainer={modelSelectorPortalContainer}
+                        onSettingsNavigate={() => setDialogOpen(false)}
                         trigger={renderModelSelectorTrigger()}
                       />
                     </div>
