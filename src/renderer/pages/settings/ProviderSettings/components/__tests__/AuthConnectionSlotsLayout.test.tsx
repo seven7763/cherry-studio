@@ -38,15 +38,13 @@ describe('AuthConnectionSlotsLayout', () => {
     expect(container.querySelector('section')).not.toBeNull()
   })
 
-  it('renders the connection section heading', () => {
+  it('does not render a connection section heading', () => {
     const { container } = render(
       <AuthConnectionSlotsLayout providerId="openai">
         <div>core</div>
       </AuthConnectionSlotsLayout>
     )
 
-    const heading = container.querySelector('h2')
-    expect(heading).not.toBeNull()
-    expect(heading?.textContent).toBe('settings.provider.connection_title')
+    expect(container.querySelector('h2')).toBeNull()
   })
 })

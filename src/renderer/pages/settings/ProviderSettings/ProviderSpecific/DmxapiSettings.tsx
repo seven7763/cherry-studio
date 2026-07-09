@@ -82,8 +82,8 @@ const DmxapiSettings: FC<DmxapiSettingsProps> = ({ providerId }) => {
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <span className="font-medium text-[length:var(--font-size-body-sm)] text-foreground leading-[var(--line-height-body-sm)]">
-        {t('settings.provider.dmxapi.select_platform')}
+      <span className="font-normal text-[length:var(--font-size-body-sm)] text-foreground leading-[var(--line-height-body-sm)]">
+        {t('settings.provider.api_host')}
       </span>
       <div className="flex min-w-0 items-center gap-2">
         <div className="min-w-0 flex-1">

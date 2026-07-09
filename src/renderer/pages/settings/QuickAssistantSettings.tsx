@@ -233,7 +233,7 @@ const DefaultTag = ({
   <span
     className={cn(
       'rounded px-1 py-0.5 text-xs',
-      isCurrent ? 'text-control-accent' : 'text-foreground-muted',
+      isCurrent ? 'text-muted-foreground' : 'text-foreground-muted',
       className
     )}
     {...props}

@@ -354,7 +354,7 @@ const ChannelInstanceRow: FC<{
     <div className="flex items-center gap-3 rounded-xl border border-border-muted px-3 py-2.5">
       <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusColor}`} />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 font-medium text-sm">
+        <div className="flex items-center gap-2 font-normal text-sm">
           {channel.name}
           {statusTag}
         </div>

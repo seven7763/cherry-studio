@@ -200,8 +200,8 @@ const ChannelFieldsForm: FC<ChannelFieldsFormProps> = ({
             <Alert
               type="info"
               showIcon
-              message={chatIdsConfig.extraHint}
-              className="mt-1.5 gap-2 border-[var(--color-info-base)]/30 px-2.5 py-2 text-xs shadow-none [&_[data-slot=alert-message]]:font-normal [&_svg]:size-3.5"
+              message={<span className="font-normal">{chatIdsConfig.extraHint}</span>}
+              className="mt-1.5 gap-2 border-[var(--color-info-border)] px-2.5 py-2 text-xs shadow-none [&_svg]:size-3.5"
             />
           )}
         </div>
@@ -294,8 +294,8 @@ export const FeishuForm: FC<ChannelFormProps> = ({ channel, onConfigChange }) =>
             <Alert
               type="info"
               showIcon
-              message={t('agent.cherryClaw.channels.feishu.loginHint')}
-              className="gap-2 border-[var(--color-info-base)]/30 px-2.5 py-2 text-xs shadow-none [&_[data-slot=alert-message]]:font-normal [&_svg]:size-3.5"
+              message={<span className="font-normal">{t('agent.cherryClaw.channels.feishu.loginHint')}</span>}
+              className="gap-2 border-[var(--color-info-border)] px-2.5 py-2 text-xs shadow-none [&_svg]:size-3.5"
             />
           )}
           {(status === 'pending' || status === 'expired') && (
@@ -483,8 +483,8 @@ export const WeChatForm: FC<ChannelFormProps & { onRemove?: () => void }> = ({ c
           <Alert
             type="info"
             showIcon
-            message={t('agent.cherryClaw.channels.wechat.loginHint')}
-            className="gap-2 border-[var(--color-info-base)]/30 px-2.5 py-2 text-xs shadow-none [&_[data-slot=alert-message]]:font-normal [&_svg]:size-3.5"
+            message={<span className="font-normal">{t('agent.cherryClaw.channels.wechat.loginHint')}</span>}
+            className="gap-2 border-[var(--color-info-border)] px-2.5 py-2 text-xs shadow-none [&_svg]:size-3.5"
           />
         )}
         {(status === 'confirmed' || status === 'disconnected') && (

@@ -36,5 +36,5 @@ export const SettingSwitch = ({
 )
 
 export const SettingRow = ({ className, ...rest }: ComponentPropsWithoutRef<typeof BaseSettingRow>) => (
-  <BaseSettingRow className={cn('min-h-6 gap-3', className)} {...rest} />
+  <BaseSettingRow className={cn('min-h-8 gap-3', className)} {...rest} />
 )
