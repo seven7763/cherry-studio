@@ -915,10 +915,10 @@ const CreateForm: FC<{
             {agents.length > 1 && (
               <>
                 <SettingRow className="gap-2" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                  <SettingRowTitle>{t('agent.cherryClaw.channels.bindAgent')}</SettingRowTitle>
+                  <SettingRowTitle>{t('agent.channels.bindAgent')}</SettingRowTitle>
                   <Select value={agentId ?? undefined} onValueChange={setAgentId}>
                     <SelectTrigger size="sm" className="w-full">
-                      <SelectValue placeholder={t('agent.cherryClaw.channels.selectAgent')} />
+                      <SelectValue placeholder={t('agent.channels.selectAgent')} />
                     </SelectTrigger>
                     <SelectContent>
                       {agents.map((a) => (
