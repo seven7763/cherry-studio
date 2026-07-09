@@ -123,92 +123,21 @@
         "description": "透過 Telegram 機器人使用長輪詢方式接收和回覆訊息。",
         "title": "Telegram"
       },
-      "tasks": {
-        "add": "新增任務",
-        "cancel": "取消",
-        "channels": {
-          "label": "傳送至頻道",
-          "noActiveChatIds": "所選頻道沒有可用的收件人（聊天 ID）。任務結果可能無法送達。請先在平台上向機器人發送一則訊息。",
-          "placeholder": "選擇接收結果的頻道"
-        },
-        "cronPlaceholder": "例如 0 9 * * *（每天上午 9 點）",
-        "delete": {
-          "confirm": "確定要刪除此任務嗎？",
-          "label": "刪除"
-        },
-        "edit": "編輯",
-        "empty": "暫無排程任務。新增一個開始吧。",
-        "error": {
-          "createFailed": "建立任務失敗",
-          "deleteFailed": "無法刪除任務",
-          "loadFailed": "",
-          "runFailed": "無法執行任務",
-          "updateFailed": "更新任務失敗"
-        },
-        "frequency": {
-          "cronExpression": "Cron 表達式",
-          "interval": "執行間隔",
-          "label": "執行頻率",
-          "onceAt": "執行時間"
-        },
-        "intervalPlaceholder": "至少1",
-        "intervalUnit": "分鐘",
-        "lastRun": "上次執行",
-        "logs": {
-          "cancelled": "已取消",
-          "completed": "已完成",
-          "duration": "耗時",
-          "empty": "暫無執行歷史。",
-          "failed": "失敗",
-          "justNow": "剛剛",
-          "label": "執行歷史",
-          "loadError": "",
-          "result": "結果",
-          "runAt": "執行時間",
-          "running": "執行中...",
-          "search": "搜尋執行記錄...",
-          "status": "狀態",
-          "viewSession": "查看會話"
-        },
-        "name": {
-          "label": "名稱",
-          "placeholder": "例如：每日程式碼審查"
-        },
-        "nextRun": "下次執行",
-        "oncePlaceholder": "選擇日期和時間",
-        "pause": "暫停",
-        "prompt": {
-          "expand": "展開編輯器",
-          "label": "提示詞",
-          "placeholder": "此任務執行時 Agent 應該做什麼？"
-        },
-        "resume": "恢復",
-        "run": "執行",
-        "runTriggered": "任務已觸發",
-        "save": "儲存",
-        "scheduleType": {
-          "cron": "Cron",
-          "interval": "間隔",
-          "once": "一次性"
-        },
-        "status": {
-          "active": "活躍",
-          "completed": "已完成",
-          "paused": "已暫停"
-        },
-        "tab": "任務",
-        "time": {
-          "hoursAgo": "{{count}}小時前",
-          "minutesAgo": "{{count}}分鐘前"
-        },
-        "timeout": {
-          "label": "最長執行時間",
-          "placeholder": "無限制"
-        },
-        "title": "排程任務"
-      },
-      "warning": {
-        "bypassPermissions": "CherryClaw Agent 預設以全自動模式執行。所有工具執行時不會請求批准。"
+      "title": "頻道",
+      "updateError": "更新頻道失敗",
+      "wechat": {
+        "addAccount": "新增微信帳號",
+        "chatIds": "允許的使用者 ID",
+        "chatIdsHint": "以逗號分隔。留空以允許所有使用者。",
+        "chatIdsPlaceholder": "wxid_abc123, wxid_def456",
+        "connected": "已連線",
+        "description": "透過 iLink Bot API 在微信上接收並回覆訊息。",
+        "disconnected": "已斷線",
+        "loginHint": "首次登入需要掃描 QR 碼。請查看應用程式記錄以取得登入網址。",
+        "qrHint": "打開手機上的微信，掃描 QR 碼登入。",
+        "qrTitle": "微信 QR 碼登入",
+        "title": "微信",
+        "whoamiTip": "提示：在微信中發送 /whoami 可取得使用者的 ID。"
       }
     },
     "delete": {
