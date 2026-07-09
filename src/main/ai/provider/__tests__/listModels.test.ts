@@ -1,5 +1,5 @@
 import type * as AiSdkProviderUtils from '@ai-sdk/provider-utils'
-import { ENDPOINT_TYPE } from '@shared/data/types/model'
+import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@shared/data/types/model'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { makeProvider } from '../../__tests__/fixtures/provider'
@@ -259,6 +259,55 @@ describe('listModels — copilotFetcher (preset-aware routing)', () => {
 
     expect(getCopilotTokenMock).toHaveBeenCalledTimes(1)
     expect(models.map((m) => m.apiModelId)).toEqual(['gpt-4o'])
+  })
+})
+
+describe('listModels — ppioFetcher capability mapping', () => {
+  function makePpioProvider() {
+    return makeProvider({
+      id: 'ppio',
+      defaultChatEndpoint: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
+      endpointConfigs: {
+        [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: { baseUrl: 'https://api.ppio.com/v1' }
+      }
+    })
+  }
+
+  it('keeps RERANK and fills missing metadata when the same model id appears in chat and reranker endpoints', async () => {
+    aiSdkGetFromApiMock.mockImplementation(({ url }: { url: string }) => {
+      if (url.endsWith('/models?model_type=embedding')) {
+        return Promise.resolve({ value: { data: [{ id: 'ppio-embedding' }] } })
+      }
+
+      if (url.endsWith('/models?model_type=reranker')) {
+        return Promise.resolve({
+          value: {
+            data: [
+              {
+                id: 'ppio-reranker',
+                owned_by: 'ppio-rerank',
+                name: 'PPIO Rerank Pro',
+                description: 'Reranker endpoint metadata',
+                group: 'rerankers'
+              }
+            ]
+          }
+        })
+      }
+
+      return Promise.resolve({ value: { data: [{ id: 'ppio-chat' }, { id: 'ppio-reranker' }] } })
+    })
+
+    const models = await listModels(makePpioProvider())
+    const chatModel = models.find((model) => model.apiModelId === 'ppio-chat')
+    const rerankerModel = models.find((model) => model.apiModelId === 'ppio-reranker')
+
+    expect(chatModel?.capabilities).not.toContain(MODEL_CAPABILITY.RERANK)
+    expect(rerankerModel?.capabilities).toContain(MODEL_CAPABILITY.RERANK)
+    expect(rerankerModel?.ownedBy).toBe('ppio-rerank')
+    expect(rerankerModel?.name).toBe('PPIO Rerank Pro')
+    expect(rerankerModel?.description).toBe('Reranker endpoint metadata')
+    expect(rerankerModel?.group).toBe('rerankers')
   })
 })
 

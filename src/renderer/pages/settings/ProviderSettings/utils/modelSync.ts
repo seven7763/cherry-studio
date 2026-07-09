@@ -3,7 +3,14 @@ import { loggerService } from '@logger'
 import { ipcApi } from '@renderer/ipc'
 import type { CreateModelDto } from '@shared/data/api/schemas/models'
 import type { ConcreteApiPaths } from '@shared/data/api/types'
-import { type EndpointType as RuntimeEndpointType, type Model, parseUniqueModelId } from '@shared/data/types/model'
+import {
+  type EndpointType as RuntimeEndpointType,
+  type Model,
+  MODEL_CAPABILITY,
+  type ModelCapability,
+  parseUniqueModelId
+} from '@shared/data/types/model'
+import { inferRerankFromModelId } from '@shared/utils/model'
 import { isEmpty } from 'es-toolkit/compat'
 
 const logger = loggerService.withContext('ProviderModelSync')
@@ -23,18 +30,33 @@ export class ModelSyncError extends Error {
 
 type ProviderResolveModelsPath = Extract<ConcreteApiPaths, `/providers/${string}/models:resolve`>
 
+function getRawModelId(model: Pick<Partial<Model>, 'apiModelId' | 'id'>): string {
+  return model.apiModelId ?? (model.id ? parseUniqueModelId(model.id).modelId : '')
+}
+
+function inferModelCapabilities(model: Pick<Partial<Model>, 'apiModelId' | 'id' | 'capabilities'>): ModelCapability[] {
+  const capabilities = new Set<ModelCapability>(model.capabilities ?? [])
+  const rawModelId = getRawModelId(model)
+  if (rawModelId && inferRerankFromModelId(rawModelId)) {
+    capabilities.add(MODEL_CAPABILITY.RERANK)
+  }
+  return [...capabilities]
+}
+
 export function toCreateModelDto(
   providerId: string,
   model: Model,
   endpointTypes?: RuntimeEndpointType[]
 ): CreateModelDto {
-  const modelId = model.apiModelId ?? parseUniqueModelId(model.id).modelId
+  const modelId = getRawModelId(model)
+  const capabilities = inferModelCapabilities(model)
 
   return {
     providerId,
     modelId,
     name: model.name,
     group: model.group,
+    ...(capabilities.length > 0 ? { capabilities } : {}),
     ...(endpointTypes ? { endpointTypes } : model.endpointTypes ? { endpointTypes: model.endpointTypes } : {})
   }
 }
@@ -93,7 +115,7 @@ async function enrichFetchedModels(providerId: string, fetchedModels: Partial<Mo
       resolvedMap.get((apiId.includes('/') ? apiId.substring(apiId.lastIndexOf('/') + 1) : apiId).replaceAll('.', '-'))
 
     if (!registry) {
-      return base
+      return { ...base, capabilities: inferModelCapabilities(base) }
     }
 
     const merged = { ...base }
@@ -104,7 +126,7 @@ async function enrichFetchedModels(providerId: string, fetchedModels: Partial<Mo
       }
     }
 
-    return merged
+    return { ...merged, capabilities: inferModelCapabilities(merged) }
   })
 }
 
