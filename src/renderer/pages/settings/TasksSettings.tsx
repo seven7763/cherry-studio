@@ -166,7 +166,7 @@ const TaskScheduleControls: FC<{
     <div className="space-y-3">
       <div className="space-y-2">
         <SettingRow>
-          <SettingRowTitle>{t('agent.cherryClaw.tasks.frequency.label')}</SettingRowTitle>
+          <SettingRowTitle>{t('agent.tasks.frequency.label')}</SettingRowTitle>
           <SegmentedControl
             size="sm"
             value={value.kind}
@@ -179,7 +179,7 @@ const TaskScheduleControls: FC<{
 
         {value.kind === 'interval' && (
           <SettingRow>
-            <SettingRowTitle>{t('agent.cherryClaw.tasks.frequency.interval')}</SettingRowTitle>
+            <SettingRowTitle>{t('agent.tasks.frequency.interval')}</SettingRowTitle>
             <div className="flex items-center gap-2">
               <UIInput
                 type="number"
@@ -187,23 +187,23 @@ const TaskScheduleControls: FC<{
                 value={value.value}
                 onChange={(e) => onChange({ ...value, value: e.target.value })}
                 onBlur={() => commitTrigger('interval', value.value)}
-                placeholder={t('agent.cherryClaw.tasks.intervalPlaceholder')}
+                placeholder={t('agent.tasks.intervalPlaceholder')}
                 disabled={disabled}
                 className="w-24"
               />
-              <span className="text-muted-foreground text-xs">{t('agent.cherryClaw.tasks.intervalUnit')}</span>
+              <span className="text-muted-foreground text-xs">{t('agent.tasks.intervalUnit')}</span>
             </div>
           </SettingRow>
         )}
 
         {value.kind === 'once' && (
           <SettingRow>
-            <SettingRowTitle>{t('agent.cherryClaw.tasks.frequency.onceAt')}</SettingRowTitle>
+            <SettingRowTitle>{t('agent.tasks.frequency.onceAt')}</SettingRowTitle>
             <DateTimePicker
               value={parseScheduleDate(value.value)}
               granularity="second"
               format="yyyy-MM-dd HH:mm:ss"
-              placeholder={t('agent.cherryClaw.tasks.oncePlaceholder')}
+              placeholder={t('agent.tasks.oncePlaceholder')}
               triggerClassName="w-72 max-w-full"
               popoverClassName="w-(--radix-popover-trigger-width) min-w-fit"
               calendarProps={{ className: 'self-center' }}
@@ -220,12 +220,12 @@ const TaskScheduleControls: FC<{
 
         {value.kind === 'cron' && (
           <SettingRow>
-            <SettingRowTitle>{t('agent.cherryClaw.tasks.frequency.cronExpression')}</SettingRowTitle>
+            <SettingRowTitle>{t('agent.tasks.frequency.cronExpression')}</SettingRowTitle>
             <UIInput
               value={value.value}
               onChange={(e) => onChange({ ...value, value: e.target.value })}
               onBlur={() => commitTrigger('cron', value.value)}
-              placeholder={t('agent.cherryClaw.tasks.cronPlaceholder')}
+              placeholder={t('agent.tasks.cronPlaceholder')}
               disabled={disabled}
               className="w-72 max-w-full"
             />
@@ -234,7 +234,7 @@ const TaskScheduleControls: FC<{
       </div>
 
       <SettingRow>
-        <SettingRowTitle>{t('agent.cherryClaw.tasks.timeout.label')}</SettingRowTitle>
+        <SettingRowTitle>{t('agent.tasks.timeout.label')}</SettingRowTitle>
         <div className="flex items-center gap-2">
           <UIInput
             type="number"
@@ -270,7 +270,7 @@ const TaskChannelSelector: FC<{
   return (
     <>
       <SettingRow>
-        <SettingRowTitle>{t('agent.cherryClaw.tasks.channels.label')}</SettingRowTitle>
+        <SettingRowTitle>{t('agent.tasks.channels.label')}</SettingRowTitle>
         <Combobox
           multiple
           size="default"
@@ -499,13 +499,13 @@ const TaskDetail: FC<{
             {task.lastRun && (
               <span className="inline-flex items-center gap-1 text-foreground-muted">
                 <History size={12} />
-                {t('agent.cherryClaw.tasks.lastRun')}: {formatDateTime(task.lastRun)}
+                {t('agent.tasks.lastRun')}: {formatDateTime(task.lastRun)}
               </span>
             )}
             {task.nextRun && (
               <span className="inline-flex items-center gap-1 text-foreground-muted">
                 <CalendarClock size={12} />
-                {t('agent.cherryClaw.tasks.nextRun')}: {formatDateTime(task.nextRun)}
+                {t('agent.tasks.nextRun')}: {formatDateTime(task.nextRun)}
               </span>
             )}
           </div>
@@ -518,7 +518,7 @@ const TaskDetail: FC<{
         <SettingCard className="border-none *:px-0">
           <div className="space-y-3">
             <SettingRow>
-              <SettingRowTitle>{t('agent.cherryClaw.tasks.name.label')}</SettingRowTitle>
+              <SettingRowTitle>{t('agent.tasks.name.label')}</SettingRowTitle>
               <UIInput
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -532,9 +532,9 @@ const TaskDetail: FC<{
               header card. */}
             <SettingRow className="gap-2" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
               <div className="flex items-center justify-between">
-                <SettingRowTitle>{t('agent.cherryClaw.tasks.prompt.label')}</SettingRowTitle>
+                <SettingRowTitle>{t('agent.tasks.prompt.label')}</SettingRowTitle>
                 {!isCompleted && (
-                  <Tooltip title={t('agent.cherryClaw.tasks.prompt.expand')}>
+                  <Tooltip title={t('agent.tasks.prompt.expand')}>
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -563,8 +563,8 @@ const TaskDetail: FC<{
               onCommit={saveField}
             />
             <TaskChannelSelector
-              channels={channels}
-              channelIds={channelIds}
+              channels={taskChannels}
+              channelIds={selectedChannelIds}
               onChange={(value) => {
                 setChannelIds(value)
                 saveField({ channelIds: value })
@@ -607,7 +607,7 @@ const TaskDetail: FC<{
 
       {/* Logs card */}
       <SettingGroup theme={theme}>
-        <SettingTitle>{t('agent.cherryClaw.tasks.logs.label')}</SettingTitle>
+        <SettingTitle>{t('agent.tasks.logs.label')}</SettingTitle>
         <SettingCard className="border-none *:px-0">
           <TaskLogsInline taskId={task.id} agentId={task.agentId} />
         </SettingCard>
@@ -673,7 +673,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
     () => [
       {
         accessorKey: 'startedAt',
-        header: t('agent.cherryClaw.tasks.logs.runAt'),
+        header: t('agent.tasks.logs.runAt'),
         meta: { width: 160, className: 'font-normal' },
         cell: ({ getValue }) =>
           new Date(getValue() as string).toLocaleString(undefined, {
@@ -686,7 +686,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
       },
       {
         accessorKey: 'durationMs',
-        header: t('agent.cherryClaw.tasks.logs.duration'),
+        header: t('agent.tasks.logs.duration'),
         meta: { width: 80, className: 'font-normal' },
         cell: ({ getValue, row }) => {
           const val = getValue() as number
@@ -699,7 +699,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
       },
       {
         accessorKey: 'status',
-        header: t('agent.cherryClaw.tasks.logs.status'),
+        header: t('agent.tasks.logs.status'),
         meta: { width: 80, className: 'font-normal' },
         cell: ({ getValue }) => {
           const val = getValue() as string
@@ -714,7 +714,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
       },
       {
         id: 'result',
-        header: t('agent.cherryClaw.tasks.logs.result'),
+        header: t('agent.tasks.logs.result'),
         meta: { width: 'calc(100% - 320px)', className: 'min-w-0 font-normal' },
         cell: ({ row }) => {
           const record = row.original
@@ -793,7 +793,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
             data={filteredLogs}
             columns={columns}
             rowKey="id"
-            emptyText={t('agent.cherryClaw.tasks.logs.empty')}
+            emptyText={t('agent.tasks.logs.empty')}
             className="bg-transparent"
             rowClassName="bg-transparent"
           />
@@ -909,7 +909,7 @@ const CreateForm: FC<{
   return (
     <SettingsContentColumn theme={theme}>
       <SettingGroup theme={theme}>
-        <SettingTitle>{t('agent.cherryClaw.tasks.add')}</SettingTitle>
+        <SettingTitle>{t('agent.tasks.add')}</SettingTitle>
         <SettingCard>
           <div className="space-y-5">
             {agents.length > 1 && (
@@ -933,18 +933,18 @@ const CreateForm: FC<{
             )}
 
             <SettingRow className="gap-2" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-              <SettingRowTitle>{t('agent.cherryClaw.tasks.name.label')}</SettingRowTitle>
+              <SettingRowTitle>{t('agent.tasks.name.label')}</SettingRowTitle>
               <UIInput
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t('agent.cherryClaw.tasks.name.placeholder')}
+                placeholder={t('agent.tasks.name.placeholder')}
               />
             </SettingRow>
 
             <SettingRow className="gap-2" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
               <div className="flex items-center justify-between">
-                <SettingRowTitle>{t('agent.cherryClaw.tasks.prompt.label')}</SettingRowTitle>
-                <Tooltip title={t('agent.cherryClaw.tasks.prompt.expand')}>
+                <SettingRowTitle>{t('agent.tasks.prompt.label')}</SettingRowTitle>
+                <Tooltip title={t('agent.tasks.prompt.expand')}>
                   <Button
                     variant="ghost"
                     size="icon-sm"
@@ -957,7 +957,7 @@ const CreateForm: FC<{
               <Textarea.Input
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder={t('agent.cherryClaw.tasks.prompt.placeholder')}
+                placeholder={t('agent.tasks.prompt.placeholder')}
                 rows={4}
                 className="min-h-22 resize-y px-3 py-2"
               />
@@ -966,12 +966,12 @@ const CreateForm: FC<{
             <Dialog open={promptModalOpen} onOpenChange={setPromptModalOpen}>
               <DialogContent closeOnOverlayClick={false} className="sm:max-w-160">
                 <DialogHeader>
-                  <DialogTitle>{t('agent.cherryClaw.tasks.prompt.label')}</DialogTitle>
+                  <DialogTitle>{t('agent.tasks.prompt.label')}</DialogTitle>
                 </DialogHeader>
                 <Textarea.Input
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder={t('agent.cherryClaw.tasks.prompt.placeholder')}
+                  placeholder={t('agent.tasks.prompt.placeholder')}
                   rows={14}
                   className="min-h-70 resize-y px-3 py-2"
                 />
@@ -979,7 +979,7 @@ const CreateForm: FC<{
             </Dialog>
 
             <TaskScheduleControls value={schedule} onChange={setSchedule} />
-            <TaskChannelSelector channels={channels} channelIds={channelIds} onChange={setChannelIds} />
+            <TaskChannelSelector channels={availableChannels} channelIds={channelIds} onChange={setChannelIds} />
 
             {/* Workspace is a secondary detail — scheduled tasks default to "No work directory". */}
             <div className="flex items-center gap-1.5 text-foreground-muted text-xs">
@@ -1000,10 +1000,10 @@ const CreateForm: FC<{
 
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={onCancel}>
-                {t('agent.cherryClaw.tasks.cancel')}
+                {t('agent.tasks.cancel')}
               </Button>
               <Button size="sm" disabled={!isValid} loading={saving} onClick={handleCreate}>
-                {t('agent.cherryClaw.tasks.save')}
+                {t('agent.tasks.save')}
               </Button>
             </div>
           </div>

@@ -663,9 +663,12 @@
         "updateFailed": "Failed to update task"
       },
       "frequency": {
+        "cronExpression": "Cron Expression",
         "everyPrefix": "Every",
         "everySuffix": "minutes",
-        "label": "Execution Frequency"
+        "interval": "Interval",
+        "label": "Execution Frequency",
+        "onceAt": "Run At"
       },
       "intervalPlaceholder": "At least 1",
       "intervalUnit": "minutes",

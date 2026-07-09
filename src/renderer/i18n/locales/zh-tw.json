@@ -663,9 +663,12 @@
         "updateFailed": "更新任務失敗"
       },
       "frequency": {
+        "cronExpression": "Cron 表達式",
         "everyPrefix": "間隔",
         "everySuffix": "分鐘執行",
-        "label": "執行頻率"
+        "interval": "執行間隔",
+        "label": "執行頻率",
+        "onceAt": "執行時間"
       },
       "intervalPlaceholder": "至少1",
       "intervalUnit": "分鐘",
