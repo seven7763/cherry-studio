@@ -14,7 +14,7 @@ import { startAiChildTurnSpan } from '../../../observability'
 import { PersistenceListener } from '../../listeners/PersistenceListener'
 import type { StreamListener } from '../../types'
 import type { MainSteerContinuationRequest } from '../dispatch'
-import { resolveModels, resolvePersistentSiblingsGroupId } from '../modelResolution'
+import { resolveAssistantModelId, resolveModels, resolvePersistentSiblingsGroupId } from '../modelResolution'
 
 // Stub model resolution + tracing so the test drives the REAL DB history path
 // (`createUserMessageWithPlaceholders` → `getPathToNode`) without provider/model
@@ -185,6 +185,51 @@ describe('PersistentChatContextProvider — steer continuation history', () => {
       { role: 'user', text: 'first question' },
       { role: 'user', text: 'retry from before' }
     ])
+  })
+
+  it('uses the selected model as the assistant-less fallback even when the default model differs', async () => {
+    const SELECTED_MODEL = createUniqueModelId('anthropic', 'claude-sonnet-4-5')
+    const [providerKey, modelKey] = generateOrderKeySequence(2)
+    await dbh.db.insert(userProviderTable).values({ providerId: 'anthropic', name: 'Anthropic', orderKey: providerKey })
+    await dbh.db.insert(userModelTable).values({
+      id: SELECTED_MODEL,
+      providerId: 'anthropic',
+      modelId: 'claude-sonnet-4-5',
+      presetModelId: 'claude-sonnet-4-5',
+      name: 'Claude Sonnet 4.5',
+      isEnabled: true,
+      isHidden: false,
+      orderKey: modelKey
+    })
+    vi.mocked(resolveAssistantModelId).mockClear()
+    vi.mocked(resolveModels).mockClear()
+    vi.mocked(resolveModels).mockReturnValueOnce([
+      { id: SELECTED_MODEL, name: 'Claude Sonnet 4.5', providerId: 'anthropic', apiModelId: 'claude-sonnet-4-5' }
+    ] as ReturnType<typeof resolveModels>)
+
+    const prepared = await provider.prepareDispatch(
+      makeSubscriber(),
+      {
+        trigger: 'submit-message',
+        topicId: 'topic-1',
+        parentAnchorId: 'u1',
+        mentionedModelIds: [SELECTED_MODEL],
+        userMessageParts: [{ type: 'text', text: 'use the selected model' }]
+      } as AiStreamOpenRequest,
+      { hasLiveStream: false }
+    )
+
+    expect(resolveAssistantModelId).not.toHaveBeenCalled()
+    expect(resolveModels).toHaveBeenLastCalledWith([SELECTED_MODEL], SELECTED_MODEL)
+    expect(prepared.models.map((m) => m.modelId)).toEqual([SELECTED_MODEL])
+    expect(prepared.models[0].request.uniqueModelId).toBe(SELECTED_MODEL)
+
+    const userMessage = messageService.getById(prepared.userMessageId!)
+    expect(userMessage.modelId).toBe(SELECTED_MODEL)
+    const placeholders = messageService.getChildrenByParentId(prepared.userMessageId!)
+    expect(placeholders).toHaveLength(1)
+    expect(placeholders[0].modelId).toBe(SELECTED_MODEL)
+    expect(prepared.models[0].request.messageId).toBe(placeholders[0].id)
   })
 
   it('fans out @-mentioned siblings: shared siblingsGroupId, one placeholder per model, aligned placeholders[i]/turnRootSpans[i]', async () => {
