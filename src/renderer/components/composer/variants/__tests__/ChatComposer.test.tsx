@@ -1004,6 +1004,32 @@ describe('ChatComposer', () => {
     expect(toast.error).not.toHaveBeenCalledWith('code.model_required')
   })
 
+  it('keeps the selected unlinked home model when multi-select is disabled before sending', async () => {
+    mocks.assistant = undefined
+    mocks.model = undefined
+    const onSend = vi.fn()
+
+    render(<ChatHomeComposer topic={unlinkedTopic} onSend={onSend} />)
+
+    fireEvent.click(screen.getByText('toggle model multi select'))
+    fireEvent.click(screen.getByText('select model 2'))
+    fireEvent.click(screen.getByText('toggle model multi select'))
+
+    expect(screen.getByTestId('model-selector')).toHaveAttribute('data-multi-select-mode', 'false')
+    expect(screen.getByTestId('model-selector')).toHaveAttribute('data-value-count', '1')
+    expect(mocks.setMentionedModels).toHaveBeenLastCalledWith([modelB])
+
+    await mocks.surfaceProps?.onSendDraft({ text: 'hello', tokens: [] })
+
+    expect(onSend).toHaveBeenCalledWith(
+      'hello',
+      expect.objectContaining({
+        mentionedModels: [modelB.id]
+      })
+    )
+    expect(toast.error).not.toHaveBeenCalledWith('code.model_required')
+  })
+
   it('hides the active assistant trigger from the toolbar in classic layout', () => {
     mocks.topicLayout = 'classic'
 

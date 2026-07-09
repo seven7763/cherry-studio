@@ -41,8 +41,10 @@ export function useChatMentionedModels({
   const [mentionedModelSelectorValue, setMentionedModelSelectorValue] = useState<Model[]>([])
   const mentionedModelSelectorInitKeyRef = useRef<string | null>(null)
   const mentionedModelMultiSelectModeRef = useRef(mentionedModelMultiSelectMode)
+  const mentionedModelSelectorValueRef = useRef(mentionedModelSelectorValue)
   const mentionedModelsRef = useRef(mentionedModels)
   mentionedModelMultiSelectModeRef.current = mentionedModelMultiSelectMode
+  mentionedModelSelectorValueRef.current = mentionedModelSelectorValue
   mentionedModelsRef.current = mentionedModels
 
   const initializeMentionedModelSelector = useEffectEvent((isInitialSelection: boolean, selectedModel?: Model) => {
@@ -106,8 +108,9 @@ export function useChatMentionedModels({
         return
       }
 
-      setMentionedModelSelectorValue((currentModels) => currentModels.slice(0, 1))
-      setMentionedModels([])
+      const collapsedModels = mentionedModelSelectorValueRef.current.slice(0, 1)
+      setMentionedModelSelectorValue(collapsedModels)
+      setMentionedModels(collapsedModels)
     },
     [setMentionedModels]
   )
