@@ -6,6 +6,7 @@ import MiniAppIcon from '../MiniAppIcon'
 
 vi.mock('@renderer/components/icons/miniAppsLogo', () => ({
   isMiniAppLogoFullBleed: (logo: unknown) => logo === 'full-bleed-logo',
+  getMiniAppLogoScale: () => 0.84,
   getMiniAppsLogo: (logo: unknown) => {
     if (logo !== 'compound-logo' && logo !== 'full-bleed-logo') return logo
     const CompoundLogo = ({
@@ -95,11 +96,11 @@ describe('MiniAppIcon', () => {
     expect(container.querySelector('[data-testid="compound-logo-avatar"]')).not.toBeInTheDocument()
     const tile = container.firstChild as HTMLElement
     expect(tile.tagName).toBe('SPAN')
-    expect(tile).toHaveClass('border', 'border-border')
+    expect(tile).toHaveClass('border', 'border-border-subtle')
     expect(tile).toHaveStyle({ width: '48px', height: '48px' })
     const icon = container.querySelector('[data-testid="compound-logo"]')
     expect(icon).toBeInTheDocument()
-    expect(icon).toHaveStyle({ width: '74%', height: '74%' })
+    expect(icon).toHaveStyle({ width: '84%', height: '84%' })
   })
 
   it('renders plain full-bleed plates edge-to-edge in a borderless clipping tile', () => {

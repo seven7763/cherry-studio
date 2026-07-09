@@ -1,5 +1,5 @@
 import { cn } from '@cherrystudio/ui/lib/utils'
-import { getMiniAppsLogo, isMiniAppLogoFullBleed } from '@renderer/components/icons/miniAppsLogo'
+import { getMiniAppLogoScale, getMiniAppsLogo, isMiniAppLogoFullBleed } from '@renderer/components/icons/miniAppsLogo'
 import type { MiniApp } from '@shared/data/types/miniApp'
 import type { FC } from 'react'
 
@@ -41,9 +41,15 @@ const MiniAppIcon: FC<Props> = ({ app, appearance = 'avatar', size = 48, style }
           }
           return (
             <span
-              className="flex shrink-0 select-none items-center justify-center overflow-hidden rounded-[24%] border border-border"
+              className="flex shrink-0 select-none items-center justify-center overflow-hidden rounded-[24%] border border-border-subtle"
               style={{ width: `${size}px`, height: `${size}px`, userSelect: 'none', ...style }}>
-              <Icon aria-label={app.name || 'MiniApp Icon'} style={{ width: '74%', height: '74%' }} />
+              <Icon
+                aria-label={app.name || 'MiniApp Icon'}
+                style={{
+                  width: `${getMiniAppLogoScale(app.logo) * 100}%`,
+                  height: `${getMiniAppLogoScale(app.logo) * 100}%`
+                }}
+              />
             </span>
           )
         }
