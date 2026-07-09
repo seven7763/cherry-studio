@@ -25,8 +25,8 @@ export function PaddleOcrModelSettings({ feature, value, onChange }: PaddleOcrMo
 
   return (
     <div className="flex flex-col gap-3">
-      <SettingRow className="items-center gap-4 py-0">
-        <SettingRowTitle className="w-24 flex-none">
+      <SettingRow className="flex-col items-stretch gap-1.5 py-0">
+        <SettingRowTitle className="flex-none">
           {t('settings.tool.file_processing.processors.paddleocr.fields.parse_model')}
         </SettingRowTitle>
         <div className="min-w-0 flex-1">

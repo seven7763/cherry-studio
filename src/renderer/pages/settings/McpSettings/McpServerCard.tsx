@@ -231,7 +231,7 @@ const McpServerCard: FC<McpServerCardProps> = ({ server, onEdit }) => {
 
         <MutedCell>{version}</MutedCell>
 
-        <div className="flex w-24 shrink-0 justify-end">
+        <div className="flex w-20 shrink-0 justify-end">
           <MetaBadge className={getTypeBadgeClass()}>{typeLabel}</MetaBadge>
         </div>
 
@@ -290,7 +290,10 @@ const ServerLogo = ({ className, ...props }: React.ComponentPropsWithoutRef<'img
 
 const MutedCell = ({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) => (
   <div
-    className={cn('hidden w-14 shrink-0 truncate text-muted-foreground text-xs min-[1180px]:block', className)}
+    className={cn(
+      'hidden w-14 shrink-0 truncate text-right text-muted-foreground text-xs min-[1180px]:block',
+      className
+    )}
     {...props}
   />
 )

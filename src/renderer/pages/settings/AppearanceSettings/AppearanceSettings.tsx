@@ -18,7 +18,6 @@ import ResetIcon from '@renderer/components/icons/ResetIcon'
 import Selector from '@renderer/components/Selector'
 import {
   SettingCard,
-  SettingDescription,
   SettingGroup,
   SettingRow,
   SettingRowTitle,
@@ -554,7 +553,6 @@ const AppearanceSettings: FC = () => {
             {t('settings.display.custom.css.cherrycss')}
           </TitleExtra>
         </SettingTitle>
-        <SettingDescription>{t('settings.display.custom.css.placeholder')}</SettingDescription>
         <div className="mt-4 overflow-hidden rounded-lg border border-border/60">
           <CodeEditor
             theme={activeCmTheme}

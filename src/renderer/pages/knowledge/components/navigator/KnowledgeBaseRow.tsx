@@ -100,7 +100,7 @@ const KnowledgeBaseRow = ({
         <div className="group/kb group relative w-full">
           <div
             className={cn(
-              'grid w-full grid-cols-[minmax(0,1fr)_1.75rem] items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors',
+              'grid w-full grid-cols-[minmax(0,1fr)_1.75rem] items-center gap-2.5 rounded-lg px-2.5 py-1 transition-colors',
               selected ? 'bg-secondary' : 'hover:bg-accent'
             )}>
             <Button
@@ -108,7 +108,7 @@ const KnowledgeBaseRow = ({
               variant="ghost"
               onClick={() => onSelectBase(base.id)}
               className="flex min-h-0 min-w-0 items-center justify-start rounded-lg p-0 text-left shadow-none hover:bg-transparent">
-              <div className="min-w-0 truncate font-medium text-foreground text-sm leading-5">{base.name}</div>
+              <div className="min-w-0 truncate font-normal text-foreground text-sm leading-5">{base.name}</div>
             </Button>
 
             <CommandPopupMenu

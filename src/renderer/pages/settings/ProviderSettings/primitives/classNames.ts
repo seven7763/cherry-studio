@@ -114,7 +114,7 @@ export const providerListClasses = {
     'flex w-2.5 shrink-0 items-center justify-center text-muted-foreground/40 opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 group-focus-within/row:opacity-100 data-[dragging=true]:opacity-100',
   itemDragHandleSpacer: 'flex w-2.5 shrink-0',
   itemAvatar:
-    'shrink-0 rounded-md border border-border/30 [&_[data-slot=avatar-fallback]]:rounded-[inherit] [&_[data-slot=avatar-image]]:rounded-[inherit]',
+    'shrink-0 rounded-full border border-border/30 [&_[data-slot=avatar-fallback]]:rounded-[inherit] [&_[data-slot=avatar-image]]:rounded-[inherit]',
   itemLabel: 'min-w-0 truncate text-sm leading-[1.35] text-foreground font-medium',
   itemTrailingSlot: 'relative -mr-1 ml-1 flex shrink-0 items-center justify-center',
   itemTrailingSlotAction: 'size-5',

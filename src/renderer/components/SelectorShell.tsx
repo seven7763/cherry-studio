@@ -486,7 +486,7 @@ export function SelectorShell({
               {filterContent ? (
                 <div
                   ref={setFilterElement}
-                  className="flex flex-wrap items-center gap-1.5 border-border border-b px-3 py-2"
+                  className="flex flex-wrap items-center gap-1.5 border-border-subtle border-b-[0.5px] px-3 py-2"
                   data-selector-shell-chrome="filter">
                   {filterContent}
                 </div>
@@ -495,7 +495,7 @@ export function SelectorShell({
               {multiSelect ? (
                 <div
                   ref={setMultiSelectElement}
-                  className="flex items-center justify-between gap-3 border-border border-b px-3 py-2"
+                  className="flex items-center justify-between gap-3 border-border-subtle border-b-[0.5px] px-3 py-2"
                   data-selector-shell-chrome="multi-select"
                   data-testid={multiSelect.rowTestId}>
                   <div className="text-(length:--font-size-body-2xs) flex min-w-0 flex-1 items-center gap-1 text-muted-foreground">
@@ -520,7 +520,7 @@ export function SelectorShell({
               {hasBottomAction ? (
                 <div
                   ref={setBottomActionElement}
-                  className="relative z-1 shrink-0 border-border border-t bg-popover"
+                  className="relative z-1 shrink-0 border-border-subtle border-t-[0.5px] bg-popover"
                   data-selector-shell-chrome="bottom-action">
                   {resolvedBottomActions.map((action, index) => {
                     const selected = action.type === 'selectable' && action.selected

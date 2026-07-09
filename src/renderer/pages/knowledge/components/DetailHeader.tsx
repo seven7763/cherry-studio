@@ -36,7 +36,7 @@ const DetailHeader = ({ base, onOpenRagConfig, onOpenRecallTest, onRebuild, onAd
       <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <h1 className="min-w-0 truncate font-[550] text-foreground text-xl leading-7">{base.name}</h1>
+            <h1 className="min-w-0 truncate font-medium text-foreground text-xl leading-7">{base.name}</h1>
             {base.status === 'failed' ? (
               <Button
                 type="button"

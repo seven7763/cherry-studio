@@ -163,6 +163,7 @@ const WebDavSettings: FC = () => {
             <SettingRowTitle>{t('settings.data.webdav.autoSync.label')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={webdavSyncInterval}
               onChange={onSyncIntervalChange}
               disabled={!webdavHost}
@@ -184,6 +185,7 @@ const WebDavSettings: FC = () => {
             <SettingRowTitle>{t('settings.data.webdav.maxBackups')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={webdavMaxBackups}
               onChange={onMaxBackupsChange}
               disabled={!webdavHost}

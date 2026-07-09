@@ -4,7 +4,6 @@ import {
   SettingGroup,
   SettingHelpLink,
   SettingHelpText,
-  SettingHelpTextRow,
   SettingsContentColumn,
   SettingSubtitle,
   SettingTitle,
@@ -28,7 +27,7 @@ import type {
 } from '@shared/data/preference/preferenceTypes'
 import { useNavigate } from '@tanstack/react-router'
 import { isEmpty } from 'es-toolkit/compat'
-import { ExternalLink, List } from 'lucide-react'
+import { ExternalLink, List, SquareCheckBig } from 'lucide-react'
 import type { FC } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -40,7 +39,6 @@ import { WebSearchApiKeyListPopup } from './WebSearchApiKeyList'
 const providerFormClassName = 'flex w-full flex-col gap-4'
 const providerFieldClassName = 'flex flex-col gap-2'
 const providerFieldHeaderClassName = 'flex items-center justify-between gap-3'
-const providerHelpRowClassName = 'flex min-h-5 flex-wrap items-center justify-between gap-x-4 gap-y-1 pt-0.5'
 
 type SetCapabilityApiHost = (
   providerId: WebSearchProviderId,
@@ -340,9 +338,16 @@ export const WebSearchProviderSetting: FC<Props> = ({
               {showApiKeySettings && !usesLlmProviderApiKey && (
                 <div className={providerFieldClassName}>
                   <div className={providerFieldHeaderClassName}>
-                    <SettingSubtitle className="text-[length:var(--font-size-body-xs)]">
-                      {t('settings.provider.api_key.label')}
-                    </SettingSubtitle>
+                    <div className="flex min-w-0 items-center gap-x-3">
+                      <SettingSubtitle className="text-[length:var(--font-size-body-xs)]">
+                        {t('settings.provider.api_key.label')}
+                      </SettingSubtitle>
+                      {apiKeyWebsite && (
+                        <SettingHelpLink target="_blank" href={apiKeyWebsite}>
+                          {t('settings.provider.get_api_key')}
+                        </SettingHelpLink>
+                      )}
+                    </div>
                     <Tooltip content={t('settings.provider.api.key.list.open')} delay={500}>
                       <Button
                         variant="ghost"
@@ -373,13 +378,6 @@ export const WebSearchProviderSetting: FC<Props> = ({
                       {t('settings.tool.websearch.check')}
                     </Button>
                   </div>
-                  {apiKeyWebsite && (
-                    <SettingHelpTextRow className={providerHelpRowClassName}>
-                      <SettingHelpLink target="_blank" href={apiKeyWebsite}>
-                        {t('settings.provider.get_api_key')}
-                      </SettingHelpLink>
-                    </SettingHelpTextRow>
-                  )}
                 </div>
               )}
 
@@ -468,6 +466,21 @@ export const WebSearchProviderSetting: FC<Props> = ({
                   </div>
                 </>
               )}
+            </div>
+          </SettingCard>
+        )}
+        {provider.id === 'fetch' && (
+          <SettingCard>
+            <div className="flex items-start gap-2">
+              <SquareCheckBig size={13} className="mt-0.5 shrink-0 text-success" />
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-success text-xs">
+                  {t('settings.tool.websearch.provider_status.fetch.available')}
+                </div>
+                <SettingHelpText className="mt-1 text-xs">
+                  {t('settings.tool.websearch.provider_status.fetch.no_configuration')}
+                </SettingHelpText>
+              </div>
             </div>
           </SettingCard>
         )}

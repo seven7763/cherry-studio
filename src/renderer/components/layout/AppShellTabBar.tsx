@@ -7,7 +7,7 @@ import { emitResourceListReveal, type ResourceListRevealSource } from '@renderer
 import { isMac } from '@renderer/utils/platform'
 import { cn } from '@renderer/utils/style'
 import { ChevronsLeft, Pin, PinOff, Plus, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ShellTabBarActions, useShellTabBarLayout } from './ShellTabBarActions'
@@ -46,7 +46,7 @@ interface TabToneProps {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const Separator = () => <div className="mx-0.5 h-4 w-px shrink-0 bg-border/50" />
+const Separator = () => <div className="mx-0.5 h-3.5 w-0.5 shrink-0 rounded-full bg-border/50" />
 
 type PinnedTabButtonProps = {
   tab: Tab
@@ -540,41 +540,43 @@ export const AppShellTabBar = ({
           {pinnedTabs.length > 0 && hasUnpinnedTabs && <Separator />}
 
           {/* Normal tabs — affordances come entirely from getTabCapabilities. */}
-          {normalTabs.map((tab) => {
+          {normalTabs.map((tab, index) => {
             const caps = getTabCapabilities(tab, tabContext)
             return (
-              <TabRightClickMenu
-                key={tab.id}
-                isPinned={false}
-                capabilities={caps}
-                onMoveToFirst={() => handleMoveToFirst(tab.id)}
-                onTogglePin={() => handlePinToggle(tab.id)}
-                onDetach={() => detachTab?.(tab.id)}
-                onClose={() => closeTab(tab.id)}>
-                <NormalTabButton
-                  tab={tab}
-                  isActive={tab.id === activeTabId}
-                  onSelect={() => handleSelectTab(tab)}
-                  onClose={() => closeTab(tab.id)}
-                  showClose={caps.close}
-                  tone={tabTone}
-                  drag={{
-                    isDragging: isDragging(tab.id),
-                    isGhost: isGhost(tab.id),
-                    noTransition,
-                    translateX: getTranslateX(tab.id, 'normal'),
-                    onPointerDown:
-                      caps.reorder || caps.detach ? (e) => handlePointerDown(e, tab, 'normal') : () => undefined
-                  }}
-                  tabRef={(el) => {
-                    if (el) {
-                      tabRefs.current.set(tab.id, el)
-                    } else {
-                      tabRefs.current.delete(tab.id)
-                    }
-                  }}
-                />
-              </TabRightClickMenu>
+              <Fragment key={tab.id}>
+                {index > 0 && tab.id !== activeTabId && normalTabs[index - 1].id !== activeTabId && <Separator />}
+                <TabRightClickMenu
+                  isPinned={false}
+                  capabilities={caps}
+                  onMoveToFirst={() => handleMoveToFirst(tab.id)}
+                  onTogglePin={() => handlePinToggle(tab.id)}
+                  onDetach={() => detachTab?.(tab.id)}
+                  onClose={() => closeTab(tab.id)}>
+                  <NormalTabButton
+                    tab={tab}
+                    isActive={tab.id === activeTabId}
+                    onSelect={() => handleSelectTab(tab)}
+                    onClose={() => closeTab(tab.id)}
+                    showClose={caps.close}
+                    tone={tabTone}
+                    drag={{
+                      isDragging: isDragging(tab.id),
+                      isGhost: isGhost(tab.id),
+                      noTransition,
+                      translateX: getTranslateX(tab.id, 'normal'),
+                      onPointerDown:
+                        caps.reorder || caps.detach ? (e) => handlePointerDown(e, tab, 'normal') : () => undefined
+                    }}
+                    tabRef={(el) => {
+                      if (el) {
+                        tabRefs.current.set(tab.id, el)
+                      } else {
+                        tabRefs.current.delete(tab.id)
+                      }
+                    }}
+                  />
+                </TabRightClickMenu>
+              </Fragment>
             )
           })}
 

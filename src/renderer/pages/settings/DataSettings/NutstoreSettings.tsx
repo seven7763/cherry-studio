@@ -278,6 +278,7 @@ const NutstoreSettings: FC = () => {
                 <SettingRowTitle>{t('settings.data.webdav.autoSync.label')}</SettingRowTitle>
                 <Selector
                   size={14}
+                  style={{ minWidth: 140 }}
                   value={nutstoreSyncInterval}
                   onChange={onSyncIntervalChange}
                   options={[
@@ -306,6 +307,7 @@ const NutstoreSettings: FC = () => {
                 <SettingRowTitle>{t('settings.data.webdav.maxBackups')}</SettingRowTitle>
                 <Selector
                   size={14}
+                  style={{ minWidth: 140 }}
                   value={nutstoreMaxBackups}
                   onChange={onMaxBackupsChange}
                   disabled={!nutstoreToken}

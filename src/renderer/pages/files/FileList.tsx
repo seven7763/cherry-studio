@@ -44,7 +44,7 @@ function SortHeader({
       size="sm"
       onClick={() => onSort(field)}
       className={`inline-flex h-6 w-fit items-center justify-start gap-0.5 rounded-md px-1.5 py-0 text-xs uppercase tracking-wider transition-colors ${
-        active ? 'text-muted-foreground' : 'text-muted-foreground/40 hover:text-foreground'
+        active ? 'text-foreground/80' : 'text-muted-foreground hover:text-foreground'
       } ${cn || ''}`}>
       <span>{label}</span>
       <SortIcon size={9} className={iconClass} />
@@ -122,7 +122,7 @@ export const FileList = memo(function FileList({
             onSort={onSort}
           />
         </div>
-        <div className="w-[116px] text-right text-muted-foreground/40 text-xs uppercase tracking-wider">
+        <div className="w-[116px] text-right text-muted-foreground text-xs uppercase tracking-wider">
           {t('files.actions')}
         </div>
       </div>
@@ -181,9 +181,9 @@ export const FileList = memo(function FileList({
                   </>
                 )}
               </div>
-              <span className="w-[70px] shrink-0 text-muted-foreground/50 text-xs">{file.size}</span>
-              <span className="w-[55px] shrink-0 text-muted-foreground/50 text-xs">{getFormatLabel(file.format)}</span>
-              <span className="w-[110px] shrink-0 text-muted-foreground/50 text-xs">{file.updatedAt}</span>
+              <span className="w-[70px] shrink-0 text-muted-foreground text-xs">{file.size}</span>
+              <span className="w-[55px] shrink-0 text-muted-foreground text-xs">{getFormatLabel(file.format)}</span>
+              <span className="w-[110px] shrink-0 text-muted-foreground text-xs">{file.updatedAt}</span>
               <div className="grid w-[116px] shrink-0 grid-cols-4 justify-items-center gap-0.5">
                 {canOpen ? (
                   <Button

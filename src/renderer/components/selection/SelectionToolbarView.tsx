@@ -96,7 +96,7 @@ const ActionIcons: FC<{
               '[width:var(--selection-toolbar-button-icon-size,16px)]',
               '[&_svg]:[color:var(--selection-toolbar-button-icon-color,rgb(0_0_0))]',
               'dark:[&_svg]:[color:var(--selection-toolbar-button-icon-color,rgb(255_255_245_/_0.9))]',
-              'group-hover:[&_svg]:text-control-accent'
+              'group-hover:[&_svg]:text-foreground'
             )}>
             {action.id === 'copy' ? (
               renderCopyIcon()
@@ -118,7 +118,7 @@ const ActionIcons: FC<{
                 'dark:[color:var(--selection-toolbar-button-text-color,rgb(255_255_245_/_0.9))]',
                 '[font-size:var(--selection-toolbar-font-size,14px)]',
                 '[margin:var(--selection-toolbar-button-text-margin,0)]',
-                'group-hover:text-control-accent'
+                'group-hover:text-foreground'
               )}>
               {displayName}
             </span>

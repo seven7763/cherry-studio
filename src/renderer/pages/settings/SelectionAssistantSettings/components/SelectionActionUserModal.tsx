@@ -357,7 +357,7 @@ const CurrentTag = ({
   <span
     className={cn(
       'shrink-0 rounded px-1 py-0.5 text-xs',
-      isCurrent ? 'text-control-accent' : 'text-foreground-muted',
+      isCurrent ? 'text-muted-foreground' : 'text-foreground-muted',
       className
     )}
     {...props}

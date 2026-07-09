@@ -3,7 +3,6 @@ import { loggerService } from '@logger'
 import {
   SettingHelpLink,
   SettingHelpText,
-  SettingHelpTextRow,
   SettingRow,
   SettingRowTitle,
   SettingTitle
@@ -199,47 +198,56 @@ export function ProcessorPanel({
       <div className="flex w-full flex-col gap-3 rounded-xl border border-border-muted p-4">
         {supportsApiSettings(processor) ? (
           <div className="flex flex-col gap-3">
-            <SettingRow className="items-start gap-4 py-0">
-              <SettingRowTitle className="w-24 flex-none pt-2" tip={t('settings.provider.api_key.tip')}>
-                {t('settings.tool.file_processing.fields.api_key')}
-              </SettingRowTitle>
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Input
-                    type="password"
-                    value={apiKeysInput}
-                    onChange={(event) => setApiKeysInput(event.target.value)}
-                    onBlur={() => void handleApiKeysBlur()}
-                    placeholder={t('settings.tool.file_processing.fields.api_keys_placeholder')}
-                    spellCheck={false}
-                  />
-                  <Tooltip content={t('settings.provider.api.key.list.open')} delay={500}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="shrink-0"
-                      aria-label={t('settings.provider.api.key.list.open')}
-                      onClick={() => void openApiKeyList()}>
-                      <List size={13} />
-                    </Button>
-                  </Tooltip>
-                </div>
-                {apiKeyWebsite ? (
-                  <SettingHelpTextRow className="min-w-0 flex-wrap justify-start gap-x-4 gap-y-1">
+            <SettingRow className="flex-col items-stretch gap-1.5 py-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-x-3">
+                  <SettingRowTitle className="flex-none" tip={t('settings.provider.api_key.tip')}>
+                    {t('settings.tool.file_processing.fields.api_key')}
+                  </SettingRowTitle>
+                  {apiKeyWebsite ? (
                     <SettingHelpLink target="_blank" href={apiKeyWebsite}>
                       {t('settings.provider.get_api_key')}
                     </SettingHelpLink>
-                  </SettingHelpTextRow>
-                ) : null}
+                  ) : null}
+                </div>
+                <Tooltip content={t('settings.provider.api.key.list.open')} delay={500}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0"
+                    aria-label={t('settings.provider.api.key.list.open')}
+                    onClick={() => void openApiKeyList()}>
+                    <List size={13} />
+                  </Button>
+                </Tooltip>
+              </div>
+              <div className="min-w-0 flex-1">
+                <Input
+                  type="password"
+                  value={apiKeysInput}
+                  onChange={(event) => setApiKeysInput(event.target.value)}
+                  onBlur={() => void handleApiKeysBlur()}
+                  placeholder={t('settings.tool.file_processing.fields.api_keys_placeholder')}
+                  spellCheck={false}
+                />
               </div>
             </SettingRow>
             {entry.capability.apiHost !== undefined ? (
               <div>
-                <SettingRow className="items-center gap-4 py-0">
-                  <SettingRowTitle className="w-24 flex-none">
-                    {t('settings.tool.file_processing.fields.api_base_url')}
-                  </SettingRowTitle>
+                <SettingRow className="flex-col items-stretch gap-1.5 py-0">
+                  <div className="flex min-w-0 items-center gap-x-3">
+                    <SettingRowTitle
+                      className="flex-none"
+                      tip={
+                        processor.id === 'paddleocr'
+                          ? t('settings.tool.file_processing.processors.paddleocr.deployment.description')
+                          : undefined
+                      }>
+                      {t('settings.tool.file_processing.fields.api_base_url')}
+                    </SettingRowTitle>
+                    {processor.id === 'paddleocr' ? <PaddleOcrDeploymentInfo /> : null}
+                  </div>
                   <div className="min-w-0 flex-1">
                     <Input
                       value={apiHostInput}
@@ -261,8 +269,6 @@ export function ProcessorPanel({
             onChange={(value) => void setModelIdInputAndPersist(value)}
           />
         ) : null}
-
-        {processor.id === 'paddleocr' ? <PaddleOcrDeploymentInfo /> : null}
 
         {processor.id === 'system' ? (
           <div className="flex flex-col gap-3">

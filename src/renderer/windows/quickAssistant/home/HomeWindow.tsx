@@ -474,12 +474,11 @@ const HomeWindow: FC<{ draggable?: boolean }> = ({ draggable = true }) => {
             partsByMessageId={partsByMessageId}
           />
           {flowError && (
-            <div className="mb-3 break-all rounded border border-error-border bg-error-bg px-3 py-2 text-[13px] text-error-text">
+            <div className="mb-3 break-all rounded-2xl border border-error-border bg-error-bg px-3 py-2 text-[13px] text-error-text">
               {flowError}
             </div>
           )}
 
-          <Separator className="my-2.5" />
           <Footer key="footer" {...baseFooterProps} onCopy={handleCopy} />
         </div>
       )

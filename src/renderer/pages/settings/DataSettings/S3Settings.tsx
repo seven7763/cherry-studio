@@ -208,6 +208,7 @@ const S3Settings: FC = () => {
             <SettingRowTitle>{t('settings.data.s3.autoSync.label')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={s3SyncInterval}
               onChange={onSyncIntervalChange}
               disabled={!s3Endpoint || !s3AccessKeyId || !s3SecretAccessKey}
@@ -229,6 +230,7 @@ const S3Settings: FC = () => {
             <SettingRowTitle>{t('settings.data.s3.maxBackups.label')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={s3MaxBackups}
               onChange={onMaxBackupsChange}
               disabled={!s3Endpoint || !s3AccessKeyId || !s3SecretAccessKey}

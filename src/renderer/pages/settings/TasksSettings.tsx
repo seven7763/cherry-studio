@@ -205,8 +205,6 @@ const TaskScheduleControls: FC<{
               format="yyyy-MM-dd HH:mm:ss"
               placeholder={t('agent.tasks.oncePlaceholder')}
               triggerClassName="w-72 max-w-full"
-              popoverClassName="w-(--radix-popover-trigger-width) min-w-fit"
-              calendarProps={{ className: 'self-center' }}
               onChange={(date) => {
                 if (!date) return
                 const nextValue = date.toISOString()
@@ -674,7 +672,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
       {
         accessorKey: 'startedAt',
         header: t('agent.tasks.logs.runAt'),
-        meta: { width: 160, className: 'font-normal' },
+        meta: { width: 120, className: 'font-normal' },
         cell: ({ getValue }) =>
           new Date(getValue() as string).toLocaleString(undefined, {
             month: 'numeric',
@@ -715,7 +713,7 @@ const TaskLogsInline: FC<{ taskId: string; agentId: string }> = ({ taskId, agent
       {
         id: 'result',
         header: t('agent.tasks.logs.result'),
-        meta: { width: 'calc(100% - 320px)', className: 'min-w-0 font-normal' },
+        meta: { width: 'calc(100% - 280px)', className: 'min-w-0 font-normal' },
         cell: ({ row }) => {
           const record = row.original
           const val = record.result

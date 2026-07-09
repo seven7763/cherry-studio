@@ -149,8 +149,8 @@ const ChannelLogModal: FC<{
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogContent className="max-w-150">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>{`${channelName} — ${t('agent.channels.logs')}`}</span>
+          <DialogTitle className="flex items-center gap-2 text-sm font-bold">
+            <span>{`${channelName} — ${t('agent.cherryClaw.channels.logs')}`}</span>
             {logs.length > 0 && <CopyButton textToCopy={logsText} size={14} />}
           </DialogTitle>
         </DialogHeader>
@@ -254,11 +254,11 @@ const ChannelEditModal: FC<EditModalProps> = ({ open, channel, agents, onClose, 
         {channel && (
           <>
             <DialogHeader>
-              <DialogTitle>{channel.name}</DialogTitle>
+              <DialogTitle className="font-medium">{channel.name}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="mb-1 block font-medium text-xs">{t('common.name')}</label>
+                <label className="mb-1 block font-normal text-xs">{t('common.name')}</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -267,7 +267,7 @@ const ChannelEditModal: FC<EditModalProps> = ({ open, channel, agents, onClose, 
                 />
               </div>
               <div>
-                <label className="mb-1 block font-medium text-xs">{t('agent.channels.bindAgent')}</label>
+                <label className="mb-1 block font-normal text-xs">{t('agent.cherryClaw.channels.bindAgent')}</label>
                 <Select value={agentId ?? NO_AGENT_VALUE} onValueChange={handleAgentChange}>
                   <SelectTrigger size="sm" className="w-full">
                     <SelectValue placeholder={t('agent.channels.selectAgent')} />
@@ -351,7 +351,7 @@ const ChannelInstanceRow: FC<{
   }
 
   return (
-    <div className="flex items-center gap-3 border-border border-b-[0.5px] px-1 py-2.5 last:border-b-0">
+    <div className="flex items-center gap-3 rounded-xl border border-border-muted px-3 py-2.5">
       <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusColor}`} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 font-medium text-sm">
@@ -539,7 +539,7 @@ const ChannelDetail: FC<ChannelDetailProps> = ({ channelDef }) => {
             {t('agent.channels.add')}
           </Button>
         </div>
-        <div className="mt-2 flex flex-col rounded-xl border border-border/60 px-3 py-1">
+        <div className="mt-2 flex flex-col gap-2">
           {channelList.length === 0 && (
             <EmptyState
               compact

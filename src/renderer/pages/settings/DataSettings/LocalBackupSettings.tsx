@@ -227,6 +227,7 @@ const LocalBackupSettings: React.FC = () => {
             <SettingRowTitle>{t('settings.data.local.autoSync.label')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={localBackupSyncInterval}
               onChange={onSyncIntervalChange}
               disabled={!localBackupDir}
@@ -248,6 +249,7 @@ const LocalBackupSettings: React.FC = () => {
             <SettingRowTitle>{t('settings.data.local.maxBackups.label')}</SettingRowTitle>
             <Selector
               size={14}
+              style={{ minWidth: 140 }}
               value={localBackupMaxBackups}
               onChange={onMaxBackupsChange}
               disabled={!localBackupDir}
