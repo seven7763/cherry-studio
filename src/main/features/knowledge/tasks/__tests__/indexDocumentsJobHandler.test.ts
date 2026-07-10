@@ -141,26 +141,51 @@ describe('index-documents job handler', () => {
 
     const progressKey = `knowledge.item.embedding_progress.${NOTE_ITEM_ID}`
     const cacheService = MockMainCacheServiceExport.cacheService
-    const progressValues = cacheService.setShared.mock.calls
-      .filter(([key]) => key === progressKey)
-      .map(([, value]) => value as number)
-    // Reset to 0 entering the embedding phase, then non-decreasing per-batch
-    // updates ending at 100%.
+    const progressCalls = cacheService.setShared.mock.calls.filter(([key]) => key === progressKey)
+    const progressValues = progressCalls.map(([, value]) => value as number)
+    // 0 as the batch loop starts, then non-decreasing per-batch updates ending at 100%.
     expect(progressValues[0]).toBe(0)
     expect(progressValues.at(-1)).toBe(100)
     expect(progressValues).toEqual([...progressValues].sort((a, b) => a - b))
-    // Cleared once the item finishes embedding — no stale percentage left behind.
-    expect(cacheService.deleteShared).toHaveBeenCalledWith(progressKey)
-    // Cleared only after the item actually flips to 'completed', not right after the
-    // batch loop — otherwise the row would show a bare "embedding" status with no
-    // percentage for the whole material-write phase in between.
+    // Active writes never carry a TTL — a slow batch or material write must not let
+    // the value expire mid-run. Only the final linger write does, purely as GC.
+    const activeCalls = progressCalls.slice(0, -1)
+    for (const call of activeCalls) {
+      expect(call[2]).toBeUndefined()
+    }
+    expect(progressCalls.at(-1)?.[2]).toEqual(expect.any(Number))
+    // A prior run's leftover is cleared as this run enters the embedding phase,
+    // before any fresh percentage is published.
+    const deleteSharedCallOrder = cacheService.deleteShared.mock.calls.findIndex(([key]) => key === progressKey)
+    expect(deleteSharedCallOrder).toBeGreaterThanOrEqual(0)
+    const deleteSharedInvocationOrder = cacheService.deleteShared.mock.invocationCallOrder[deleteSharedCallOrder]
+    const firstProgressInvocationOrder =
+      cacheService.setShared.mock.invocationCallOrder[
+        cacheService.setShared.mock.calls.findIndex(([key]) => key === progressKey)
+      ]
+    expect(deleteSharedInvocationOrder).toBeLessThan(firstProgressInvocationOrder)
+    // The value must outlive the job — the list status is polled, so a completion
+    // that removed the key would blank the percentage until the next poll. The
+    // exit path re-publishes the final value (delete-then-set, so the TTL'd write
+    // actually broadcasts to renderer mirrors instead of being skipped as a
+    // same-value refresh), landing only after the item flips to 'completed'.
+    expect(cacheService.getShared(progressKey)).toBe(100)
     const completedCallOrder = knowledgeItemUpdateStatusMock.mock.calls.findIndex(
       ([, status]) => status === 'completed'
     )
     const completedInvocationOrder = knowledgeItemUpdateStatusMock.mock.invocationCallOrder[completedCallOrder]
-    const deleteSharedCallOrder = cacheService.deleteShared.mock.calls.findIndex(([key]) => key === progressKey)
-    const deleteSharedInvocationOrder = cacheService.deleteShared.mock.invocationCallOrder[deleteSharedCallOrder]
-    expect(deleteSharedInvocationOrder).toBeGreaterThan(completedInvocationOrder)
+    const lingerCallIndex = cacheService.setShared.mock.calls.lastIndexOf(progressCalls.at(-1)!)
+    const lingerInvocationOrder = cacheService.setShared.mock.invocationCallOrder[lingerCallIndex]
+    expect(lingerInvocationOrder).toBeGreaterThan(completedInvocationOrder)
+    // The linger's baseline-resetting delete sits between 'completed' and the final
+    // TTL'd write — a delete AFTER the write would wipe the value it just published.
+    const lingerDeleteCallOrder = cacheService.deleteShared.mock.calls
+      .map(([key], index) => (key === progressKey ? index : -1))
+      .filter((index) => index >= 0)
+      .at(-1)!
+    const lingerDeleteInvocationOrder = cacheService.deleteShared.mock.invocationCallOrder[lingerDeleteCallOrder]
+    expect(lingerDeleteInvocationOrder).toBeGreaterThan(completedInvocationOrder)
+    expect(lingerDeleteInvocationOrder).toBeLessThan(lingerInvocationOrder)
   })
 
   it('stops embedding more batches once the job is aborted mid-loop', async () => {
@@ -187,6 +212,12 @@ describe('index-documents job handler', () => {
 
     expect(embedKnowledgeTextsMock).toHaveBeenCalledTimes(1)
     expect(rebuildMaterialMock).not.toHaveBeenCalled()
+    // The exit path converts the partial percentage into a TTL'd leftover even on
+    // abort — never a mid-run deletion, never a TTL-free leak.
+    const progressKey = `knowledge.item.embedding_progress.${NOTE_ITEM_ID}`
+    const cacheService = MockMainCacheServiceExport.cacheService
+    const lastProgressCall = cacheService.setShared.mock.calls.filter(([key]) => key === progressKey).at(-1)
+    expect(lastProgressCall?.[2]).toEqual(expect.any(Number))
   })
 
   it('does not run local token-limit refinement for non-local embedding models', async () => {
@@ -253,6 +284,13 @@ describe('index-documents job handler', () => {
     expect(lastRebuildInput().embeddings).toEqual([])
     expect(lastRebuildInput().units).toHaveLength(DISTINCT_DOCS.length)
     expect(knowledgeItemUpdateStatusMock).toHaveBeenCalledWith(NOTE_ITEM_ID, 'completed')
+    // With nothing to embed there is no progress either — publishing 0% here
+    // would show a "vectorizing 0%" row for work that never happens.
+    expect(
+      MockMainCacheServiceExport.cacheService.setShared.mock.calls.filter(
+        ([key]) => key === `knowledge.item.embedding_progress.${NOTE_ITEM_ID}`
+      )
+    ).toHaveLength(0)
   })
 
   it('skips embedding entirely for a BM25-only base and writes only lexical text', async () => {
@@ -278,6 +316,13 @@ describe('index-documents job handler', () => {
     expect(input.embeddings).toEqual([])
     expect(input.units).toHaveLength(DISTINCT_DOCS.length)
     expect(knowledgeItemUpdateStatusMock).toHaveBeenCalledWith(NOTE_ITEM_ID, 'completed')
+    // A lexical base never embeds, so it must not publish a percentage — the row
+    // would otherwise sit at "vectorizing 0%" with no embedding request in flight.
+    expect(
+      MockMainCacheServiceExport.cacheService.setShared.mock.calls.filter(
+        ([key]) => key === `knowledge.item.embedding_progress.${NOTE_ITEM_ID}`
+      )
+    ).toHaveLength(0)
   })
 
   it('warns when an item yields no indexable text, and still completes it with an empty material', async () => {

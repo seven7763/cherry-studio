@@ -1,14 +1,14 @@
 import { Checkbox, NormalTooltip } from '@cherrystudio/ui'
 import { cn } from '@cherrystudio/ui/lib/utils'
 import { CommandContextMenu, type CommandContextMenuExtraItem } from '@renderer/components/command'
-import { useSharedCache } from '@renderer/data/hooks/useCache'
+import { useSharedCacheValue } from '@renderer/data/hooks/useCache'
 import { getKnowledgeItemFailureReason } from '@renderer/pages/knowledge/utils/error'
 import { toast } from '@renderer/services/toast'
 import { formatErrorMessageWithPrefix } from '@renderer/utils/error'
 import { formatRelativeTime } from '@renderer/utils/time'
 import type { KnowledgeItem } from '@shared/data/types/knowledge'
 import { BookOpen, Check, CircleAlert, Eye, LoaderCircle, RefreshCw, Trash2 } from 'lucide-react'
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -27,6 +27,20 @@ export interface KnowledgeItemRowProps {
   onViewChunks: () => void
 }
 
+/**
+ * Live " NN%" suffix for a row whose index job is embedding. Mounted only while
+ * `item.status === 'embedding'` and subscribed read-only, so ordinary rows never
+ * create or pin the shared-cache key — the indexing job in main owns it end-to-end
+ * (created when embedding actually starts, TTL-collected after the job exits).
+ */
+const KnowledgeItemEmbeddingProgress = ({ itemId }: { itemId: string }) => {
+  const progress = useSharedCacheValue(`knowledge.item.embedding_progress.${itemId}` as const)
+  if (progress == null) {
+    return null
+  }
+  return ` ${progress}%`
+}
+
 const KnowledgeItemStatusBadge = ({
   failureReason,
   status,
@@ -34,7 +48,7 @@ const KnowledgeItemStatusBadge = ({
 }: {
   failureReason: string | null
   status: DataSourceStatusViewModel
-  embeddingProgress: number | null
+  embeddingProgress: ReactNode
 }) => {
   const { t } = useTranslation()
   const icon =
@@ -58,7 +72,7 @@ const KnowledgeItemStatusBadge = ({
       {icon}
       <span>
         {t(status.labelKey)}
-        {embeddingProgress != null && ` ${embeddingProgress}%`}
+        {embeddingProgress}
       </span>
     </span>
   )
@@ -98,9 +112,6 @@ const KnowledgeItemRow = ({
   // `failed` carries a reason code in `error` (e.g. a migrated folder whose vectors could not
   // be migrated); surface it as the badge tooltip.
   const failureReason = item.status === 'failed' ? getKnowledgeItemFailureReason(item, t) : null
-  // In-memory only (never persisted, see cacheSchemas.ts) — gone on restart or once the
-  // item's index-documents job leaves the embedding phase.
-  const [embeddingProgress] = useSharedCache(`knowledge.item.embedding_progress.${item.id}` as const)
   const canReindex = item.status === 'completed' || item.status === 'failed'
   const canViewChunks = item.status === 'completed'
   const typeLabel = t(dataSourceTypeDisplayConfig[item.type].filterLabelKey)
@@ -217,7 +228,7 @@ const KnowledgeItemRow = ({
           <KnowledgeItemStatusBadge
             status={status}
             failureReason={failureReason}
-            embeddingProgress={item.status === 'embedding' ? embeddingProgress : null}
+            embeddingProgress={item.status === 'embedding' ? <KnowledgeItemEmbeddingProgress itemId={item.id} /> : null}
           />
         </div>
         <div role="gridcell" className="truncate text-foreground-muted text-xs">

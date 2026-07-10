@@ -32,7 +32,14 @@ const logger = loggerService.withContext('Knowledge:IndexDocumentsJobHandler')
 // Chunks per embedMany call while rebuilding an item's material. Small enough to
 // surface incremental progress, large enough to not multiply request overhead.
 const EMBEDDING_PROGRESS_BATCH_SIZE = 10
-const EMBEDDING_PROGRESS_CACHE_TTL_MS = 60_000
+/**
+ * How long the final percentage lingers after the job exits. The list's item status
+ * is polled, so deleting the key at completion time blanks the percentage while the
+ * row still shows 'embedding' until the next poll. Active batch writes carry no TTL
+ * (a slow batch or material write must not expire the value mid-run); this TTL is
+ * applied only on exit, purely as garbage collection after the renderer moved on.
+ */
+const EMBEDDING_PROGRESS_LINGER_TTL_MS = 60_000
 
 /** Purely in-memory, never persisted — see `knowledge.item.embedding_progress.${itemId}` in cacheSchemas.ts. */
 function embeddingProgressCacheKey(itemId: string): `knowledge.item.embedding_progress.${string}` {
@@ -100,20 +107,24 @@ export function createIndexDocumentsJobHandler(
       // No base mutation lock here either — same reasoning as the 'reading' status above.
       reportKnowledgeProgress(ctx, 40, { stage: 'embedding', currentFile: 0, totalFiles: 1 })
       knowledgeItemService.updateStatus(ctx.input.itemId, 'embedding')
-      // Reset before the batch loop below so a stale percentage from a prior run
-      // never flashes while the first batch is still in flight.
-      application.get('CacheService').setShared(embeddingProgressCacheKey(item.id), 0, EMBEDDING_PROGRESS_CACHE_TTL_MS)
+      // A prior run's lingering percentage must not flash into this run; the key is
+      // recreated only once this run actually embeds chunks (buildRebuildMaterialInput).
+      application.get('CacheService').deleteShared(embeddingProgressCacheKey(item.id))
 
-      // Use readableItem, not item: for a freshly captured url it carries the snapshot
-      // relativePath, so the material's relative_path is the real `raw/` snapshot path
-      // (matching the migrator) instead of the item-id virtual placeholder.
-      const rebuildInput = await buildRebuildMaterialInput(ctx, base, readableItem, chunked)
+      try {
+        // Use readableItem, not item: for a freshly captured url it carries the snapshot
+        // relativePath, so the material's relative_path is the real `raw/` snapshot path
+        // (matching the migrator) instead of the item-id virtual placeholder.
+        const rebuildInput = await buildRebuildMaterialInput(ctx, base, readableItem, chunked)
 
-      // The atomic material rebuild and final status flip must stay together under the base mutation lock.
-      reportKnowledgeProgress(ctx, 80, { stage: 'writing', currentFile: 0, totalFiles: 1 })
-      await writeItemMaterial(ctx, base, rebuildInput, knowledgeLockManager)
+        // The atomic material rebuild and final status flip must stay together under the base mutation lock.
+        reportKnowledgeProgress(ctx, 80, { stage: 'writing', currentFile: 0, totalFiles: 1 })
+        await writeItemMaterial(ctx, base, rebuildInput, knowledgeLockManager)
 
-      reportKnowledgeProgress(ctx, 100, { stage: 'done', currentFile: 1, totalFiles: 1 })
+        reportKnowledgeProgress(ctx, 100, { stage: 'done', currentFile: 1, totalFiles: 1 })
+      } finally {
+        lingerEmbeddingProgress(ctx.input.itemId)
+      }
     },
 
     async onSettled(event) {
@@ -297,26 +308,29 @@ async function buildRebuildMaterialInput(
     const existingHashes = await store.listExistingEmbeddingHashes([...bodyByHash.keys()])
     const missing = [...bodyByHash.entries()].filter(([hash]) => !existingHashes.has(hash))
 
-    const cacheService = application.get('CacheService')
-    const progressKey = embeddingProgressCacheKey(item.id)
-    const vectors: number[][] = []
-    for (let i = 0; i < missing.length; i += EMBEDDING_PROGRESS_BATCH_SIZE) {
-      ctx.signal.throwIfAborted()
-      const batch = missing.slice(i, i + EMBEDDING_PROGRESS_BATCH_SIZE)
-      const batchVectors = await embedKnowledgeTexts(
-        base,
-        batch.map(([, body]) => body),
-        ctx.signal
-      )
-      vectors.push(...batchVectors)
-      cacheService.setShared(
-        progressKey,
-        Math.round((vectors.length / missing.length) * 100),
-        EMBEDDING_PROGRESS_CACHE_TTL_MS
-      )
-    }
+    if (missing.length > 0) {
+      const cacheService = application.get('CacheService')
+      const progressKey = embeddingProgressCacheKey(item.id)
+      // The first write here is what creates the key — earlier paths must not: a
+      // BM25-only base or a rebuild whose chunks all reuse stored vectors never
+      // embeds anything and must not surface a spurious 0%. No TTL while active;
+      // the exit path applies one (see EMBEDDING_PROGRESS_LINGER_TTL_MS).
+      cacheService.setShared(progressKey, 0)
+      const vectors: number[][] = []
+      for (let i = 0; i < missing.length; i += EMBEDDING_PROGRESS_BATCH_SIZE) {
+        ctx.signal.throwIfAborted()
+        const batch = missing.slice(i, i + EMBEDDING_PROGRESS_BATCH_SIZE)
+        const batchVectors = await embedKnowledgeTexts(
+          base,
+          batch.map(([, body]) => body),
+          ctx.signal
+        )
+        vectors.push(...batchVectors)
+        cacheService.setShared(progressKey, Math.round((vectors.length / missing.length) * 100))
+      }
 
-    embeddings = missing.map(([embeddingTextHash], index) => ({ embeddingTextHash, vector: vectors[index] }))
+      embeddings = missing.map(([embeddingTextHash], index) => ({ embeddingTextHash, vector: vectors[index] }))
+    }
   }
 
   return {
@@ -357,9 +371,30 @@ async function writeItemMaterial(
     const store = await vectorStoreService.getIndexStore(base)
     await store.rebuildMaterial(itemId, input)
     knowledgeItemService.updateStatus(itemId, 'completed')
-    // Only now, once the item has actually left 'embedding' — clearing it right after the
-    // batch loop (before this material write lands) left a stretch of 'embedding' status
-    // with no progress value while rebuildMaterial was still writing to index.sqlite.
-    application.get('CacheService').deleteShared(embeddingProgressCacheKey(itemId))
   })
+}
+
+/**
+ * Converts the item's in-flight progress entry (if any) into a TTL'd leftover
+ * instead of deleting it. The renderer learns the item's status by polling, so an
+ * immediate delete blanks the percentage while the row still reads 'embedding';
+ * keeping the last value until the poll observes the terminal status closes that
+ * gap on every exit path (completed, failed, aborted), and the TTL then collects
+ * the entry once nothing renders it anymore.
+ */
+function lingerEmbeddingProgress(itemId: string): void {
+  const cacheService = application.get('CacheService')
+  const progressKey = embeddingProgressCacheKey(itemId)
+  const current = cacheService.getShared(progressKey)
+  if (current === undefined) {
+    return
+  }
+  // Delete-then-set rather than a plain re-set: setShared skips the cross-window
+  // broadcast when the value is unchanged (a TTL-only refresh is silent), so a
+  // bare re-set would apply the TTL to main's copy only, leaving every renderer
+  // mirror holding the value TTL-free for the rest of the session. The deletion
+  // resets the equality baseline, so the follow-up write broadcasts the value
+  // WITH its absolute expiry, which renderer mirrors store and expire on their own.
+  cacheService.deleteShared(progressKey)
+  cacheService.setShared(progressKey, current, EMBEDDING_PROGRESS_LINGER_TTL_MS)
 }

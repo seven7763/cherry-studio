@@ -276,8 +276,10 @@ export type SharedCacheSchema = {
   'jobs.state.${jobId}': JobSnapshot | null
   'jobs.progress.${jobId}': JobProgress
   // Embedding batch progress for a knowledge item, main → all windows. Purely
-  // in-memory: meaningful only while the item's index-documents job is
-  // actively embedding, never persisted, gone on restart.
+  // in-memory: created by the index-documents job only when it actually embeds
+  // chunks (subscribers read-only via useSharedCacheValue), kept TTL-free while
+  // active, then left to linger under a short TTL after the job exits so the
+  // polled item status can reach its terminal state before the value vanishes.
   'knowledge.item.embedding_progress.${itemId}': number | null
 }
 
