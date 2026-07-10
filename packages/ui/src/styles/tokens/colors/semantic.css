@@ -32,8 +32,10 @@
   --cs-foreground: #1a1c1f;
   --cs-foreground-secondary: color-mix(in srgb, var(--cs-foreground) 60%, transparent);
   --cs-foreground-muted: color-mix(in srgb, var(--cs-foreground) 40%, transparent);
-  /* Alias so the shadcn-style `text-muted-foreground` utility resolves from the public theme. */
-  --cs-muted-foreground: var(--cs-foreground-muted);
+  /* shadcn-style muted-foreground: a neutral mid-gray for secondary text, matching the
+   * renderer bridge value (light 0.556 / dark 0.708) so text-muted-foreground stays legible
+   * — it must NOT alias the lighter --cs-foreground-muted (40% wash), which is a different role. */
+  --cs-muted-foreground: oklch(0.556 0 0);
 
   /* Menu item hover/focus background — distinct from --cs-background-subtle
    * because menu rows need a bit more contrast than generic subtle surfaces. */
@@ -173,6 +175,7 @@
   --cs-foreground: #e8e9eb;
   --cs-foreground-secondary: color-mix(in srgb, var(--cs-foreground) 60%, transparent);
   --cs-foreground-muted: color-mix(in srgb, var(--cs-foreground) 40%, transparent);
+  --cs-muted-foreground: oklch(0.708 0 0);
 
   /* Menu item hover/focus background (dark) — see comment in :root. */
   --cs-menu-item-hover: oklch(1 0 0 / 0.06);

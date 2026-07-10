@@ -86,7 +86,7 @@ export function FileTreeRow(props: FileTreeRowProps) {
         'transition-colors',
         isFolder
           ? 'text-foreground/75 hover:bg-accent/50 hover:text-foreground'
-          : 'text-muted-foreground/70 hover:bg-accent/40 hover:text-foreground',
+          : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground',
         isSelected && 'bg-accent/60 text-foreground',
         isDragging && 'opacity-50',
         dragPosition === 'inside' && 'bg-control-accent/15 ring-1 ring-control-accent/40',
