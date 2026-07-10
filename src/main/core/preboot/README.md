@@ -112,8 +112,10 @@ preboot/
 │                        dev instances with different userData suffixes use
 │                        isolated locks.
 ├── userDataLocation.ts  decides where userData lives (dev suffix or
-│                        BootConfig-driven) and exposes relocation
-│                        request/commit helpers
+│                        BootConfig-driven), exposes relocation request/commit
+│                        helpers, and exports the shared isUsableDataDir(p)
+│                        validator (isDirectory ∧ R_OK|W_OK|X_OK) reused by
+│                        the v1→v2 migration path selector
 ├── chromiumFlags.ts     Chromium startup flags (command-line switches and
 │                        hardware-acceleration toggles) that must run
 │                        before app.whenReady()
