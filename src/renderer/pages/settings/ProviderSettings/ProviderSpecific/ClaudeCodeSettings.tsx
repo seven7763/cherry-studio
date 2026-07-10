@@ -94,7 +94,7 @@ const ClaudeCodeSettings: FC<ClaudeCodeSettingsProps> = ({ providerId }) => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-success hover:bg-success/15 hover:text-success"
+            className="text-success hover:bg-success-bg-hover hover:text-success"
             disabled={checking}
             onClick={() => void checkLogin()}>
             <RefreshCw className="size-4" />
