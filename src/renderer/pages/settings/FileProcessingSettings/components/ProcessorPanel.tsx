@@ -186,7 +186,7 @@ export function ProcessorPanel({
           </div>
         </div>
         {isDefault ? (
-          <Badge className="shrink-0 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-success text-xs">
+          <Badge className="shrink-0 rounded-full border border-success-border bg-success-bg px-2 py-0.5 text-success text-xs">
             {t('common.default')}
           </Badge>
         ) : (

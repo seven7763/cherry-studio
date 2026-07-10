@@ -100,7 +100,7 @@ const FileProcessingSettings: FC = () => {
                       labelClassName={settingsSubmenuItemLabelClassName}
                       suffix={
                         isDefaultEntry(entry) ? (
-                          <Badge className="rounded-full border border-success/30 bg-success/10 px-2 py-0.5 font-medium text-success text-xs">
+                          <Badge className="rounded-full border border-success-border bg-success-bg px-2 py-0.5 font-medium text-success text-xs">
                             {t('common.default')}
                           </Badge>
                         ) : undefined

@@ -81,7 +81,7 @@ const BuiltinMcpServerList: FC = () => {
             <div
               key={server.id}
               className={cn(
-                'group flex min-h-16 items-center gap-3 rounded-xl border border-border/60 px-3.5 py-2 transition-colors duration-200 ease-in-out hover:border-border hover:bg-muted/35'
+                'group flex min-h-16 items-center gap-3 rounded-xl border border-border-muted px-3.5 py-2 transition-colors duration-200 ease-in-out hover:border-border hover:bg-muted/35'
               )}>
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 overflow-hidden">
@@ -95,7 +95,7 @@ const BuiltinMcpServerList: FC = () => {
                       rel="noopener noreferrer">
                       <Badge
                         variant="outline"
-                        className="text-(length:--font-size-body-xs) h-5 rounded-md border-destructive/25 bg-destructive/10 px-1.5 font-medium text-destructive leading-none">
+                        className="text-(length:--font-size-body-xs) h-5 rounded-md border-error-border bg-error-bg px-1.5 font-medium text-destructive leading-none">
                         {t('settings.mcp.requiresConfig')}
                       </Badge>
                     </a>
