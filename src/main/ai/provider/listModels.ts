@@ -15,7 +15,7 @@ import { loggerService } from '@logger'
 import { providerService } from '@main/data/services/ProviderService'
 import { copilotService } from '@main/services/CopilotService'
 import { defaultAppHeaders } from '@main/utils/http'
-import type { EndpointType, Model } from '@shared/data/types/model'
+import type { Model } from '@shared/data/types/model'
 import { createUniqueModelId, ENDPOINT_TYPE, MODEL_CAPABILITY } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
 import { formatApiHost, withoutTrailingSlash } from '@shared/utils/api'
@@ -395,43 +395,6 @@ const togetherFetcher: ModelFetcher = {
   }
 }
 
-const NEW_API_ENDPOINT_TYPE_MAP = {
-  openai: ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS,
-  'openai-response': ENDPOINT_TYPE.OPENAI_RESPONSES,
-  anthropic: ENDPOINT_TYPE.ANTHROPIC_MESSAGES,
-  gemini: ENDPOINT_TYPE.GOOGLE_GENERATE_CONTENT,
-  'image-generation': ENDPOINT_TYPE.OPENAI_IMAGE_GENERATION,
-  'jina-rerank': ENDPOINT_TYPE.JINA_RERANK
-} as const satisfies Record<string, EndpointType>
-
-function mapNewApiEndpointTypes(
-  supportedEndpointTypes: string[] | undefined,
-  providerId: string,
-  modelId: string
-): EndpointType[] {
-  const endpointTypes: EndpointType[] = []
-  const seen = new Set<EndpointType>()
-
-  for (const endpointType of supportedEndpointTypes ?? []) {
-    const mapped = NEW_API_ENDPOINT_TYPE_MAP[endpointType]
-    if (!mapped) {
-      logger.warn('Ignoring unknown NewAPI model endpoint type', {
-        providerId,
-        modelId,
-        endpointType
-      })
-      continue
-    }
-
-    if (!seen.has(mapped)) {
-      seen.add(mapped)
-      endpointTypes.push(mapped)
-    }
-  }
-
-  return endpointTypes
-}
-
 const newApiFetcher: ModelFetcher = {
   match: (p) =>
     p.id === SystemProviderIds['new-api'] || p.presetProviderId === 'new-api' || p.id === SystemProviderIds.cherryin,
@@ -443,13 +406,12 @@ const newApiFetcher: ModelFetcher = {
       responseSchema: NewApiModelsResponseSchema,
       abortSignal: signal
     })
-    return dedup(response.data, (m) => m.id).map((m) => {
-      const endpointTypes = mapNewApiEndpointTypes(m.supported_endpoint_types, provider.id, m.id)
-      return toModel(m.id, provider, {
+    return dedup(response.data, (m) => m.id).map((m) =>
+      toModel(m.id, provider, {
         ownedBy: m.owned_by,
-        ...(endpointTypes.length > 0 ? { endpointTypes } : {})
+        ...(m.supported_endpoint_types?.includes('jina-rerank') ? { capabilities: [MODEL_CAPABILITY.RERANK] } : {})
       })
-    })
+    )
   }
 }
 

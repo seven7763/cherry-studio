@@ -44,7 +44,7 @@ import type { CherryMessagePart } from '@shared/data/types/message'
 import type { Model, UniqueModelId } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
 import { withCherryMeta } from '@shared/data/types/uiParts'
-import { isNonChatModel, isRerankModel } from '@shared/utils/model'
+import { isNonChatModel } from '@shared/utils/model'
 import { Bot, MessageSquarePlus } from 'lucide-react'
 import React, { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -82,7 +82,7 @@ import { useLatest } from './shared/useLatest'
 
 const logger = loggerService.withContext('ChatComposer')
 const CHAT_MANAGED_TOKEN_KINDS = ['file', 'knowledge'] as const satisfies readonly ComposerDraftToken['kind'][]
-const CHAT_MODEL_FILTER = (model: Model) => !isNonChatModel(model) && !isRerankModel(model)
+const CHAT_MODEL_FILTER = (model: Model) => !isNonChatModel(model)
 
 interface ChatComposerProps {
   topic?: Topic

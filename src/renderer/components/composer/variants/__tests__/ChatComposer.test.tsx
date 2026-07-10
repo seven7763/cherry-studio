@@ -452,8 +452,7 @@ vi.mock('@renderer/hooks/useTopicStreamStatus', () => ({
 vi.mock('@shared/utils/model', () => ({
   isFunctionCallingModel: (currentModel?: Model) =>
     currentModel?.capabilities.includes(MODEL_CAPABILITY.FUNCTION_CALL) ?? false,
-  isNonChatModel: () => false,
-  isRerankModel: (currentModel?: Model) => currentModel?.capabilities.includes(MODEL_CAPABILITY.RERANK) ?? false,
+  isNonChatModel: (currentModel?: Model) => currentModel?.capabilities.includes(MODEL_CAPABILITY.RERANK) ?? false,
   isWebSearchModel: () => false
 }))
 
