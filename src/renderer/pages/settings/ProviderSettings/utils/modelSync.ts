@@ -9,7 +9,9 @@ import {
   MODEL_CAPABILITY,
   parseUniqueModelId
 } from '@shared/data/types/model'
+import type { Provider } from '@shared/data/types/provider'
 import { inferRerankFromModelId } from '@shared/utils/model'
+import { isNewApiProvider } from '@shared/utils/provider'
 import { isEmpty } from 'es-toolkit/compat'
 
 const logger = loggerService.withContext('ProviderModelSync')
@@ -28,6 +30,22 @@ export class ModelSyncError extends Error {
 }
 
 type ProviderResolveModelsPath = Extract<ConcreteApiPaths, `/providers/${string}/models:resolve`>
+type ModelSyncProviderEndpointSource = Pick<Provider, 'id' | 'presetProviderId' | 'defaultChatEndpoint'>
+
+export function resolveCreateModelEndpointTypes(
+  provider: ModelSyncProviderEndpointSource | null | undefined,
+  model: Pick<Model, 'endpointTypes'>
+): RuntimeEndpointType[] | undefined {
+  if (model.endpointTypes?.length) {
+    return [...model.endpointTypes]
+  }
+
+  if (!provider || !isNewApiProvider(provider as Provider)) {
+    return undefined
+  }
+
+  return provider.defaultChatEndpoint ? [provider.defaultChatEndpoint] : undefined
+}
 
 function getRawModelId(model: Pick<Partial<Model>, 'apiModelId' | 'id'>): string {
   return model.apiModelId ?? (model.id ? parseUniqueModelId(model.id).modelId : '')
@@ -53,6 +71,7 @@ export function toCreateModelDto(
 ): CreateModelDto {
   const modelId = getRawModelId(model)
   const capabilities = getRerankCapability(model)
+  const resolvedEndpointTypes = endpointTypes?.length ? endpointTypes : model.endpointTypes
 
   return {
     providerId,
@@ -60,7 +79,7 @@ export function toCreateModelDto(
     name: model.name,
     group: model.group,
     ...(capabilities.length > 0 ? { capabilities } : {}),
-    ...(endpointTypes ? { endpointTypes } : model.endpointTypes ? { endpointTypes: model.endpointTypes } : {})
+    ...(resolvedEndpointTypes?.length ? { endpointTypes: [...resolvedEndpointTypes] } : {})
   }
 }
 
@@ -111,6 +130,7 @@ async function enrichFetchedModels(providerId: string, fetchedModels: Partial<Mo
 
   return filteredModels.map((fetched) => {
     const base = fetched as Model
+    const fetchedRerankCapability = getRerankCapability(base)
     const apiId = fetched.apiModelId ?? ''
     const registry =
       resolvedMap.get(apiId) ??
@@ -118,19 +138,22 @@ async function enrichFetchedModels(providerId: string, fetchedModels: Partial<Mo
       resolvedMap.get((apiId.includes('/') ? apiId.substring(apiId.lastIndexOf('/') + 1) : apiId).replaceAll('.', '-'))
 
     if (!registry) {
-      const capabilities = getRerankCapability(base)
-      return capabilities.length > 0 ? { ...base, capabilities } : base
+      return fetchedRerankCapability.length > 0 ? { ...base, capabilities: fetchedRerankCapability } : base
     }
 
     const merged = { ...base }
     for (const field of REGISTRY_FIELDS) {
+      if (field === 'endpointTypes' && base.endpointTypes?.length) {
+        continue
+      }
+
       const value = registry[field]
       if (value !== undefined && value !== null && !(Array.isArray(value) && value.length === 0)) {
         ;(merged as Record<string, unknown>)[field] = value
       }
     }
 
-    const rerankCapability = getRerankCapability(merged)
+    const rerankCapability = fetchedRerankCapability.length > 0 ? fetchedRerankCapability : getRerankCapability(merged)
     if (rerankCapability.length === 0) {
       return merged
     }
@@ -155,4 +178,9 @@ export async function fetchResolvedProviderModels(providerId: string): Promise<M
     logger.error('Failed to fetch and resolve provider models', { providerId, error })
     throw error
   }
+}
+
+export async function fetchProviderCatalogModels(providerId: string): Promise<Model[]> {
+  const resolveModelsPath: ProviderResolveModelsPath = `/providers/${providerId}/models:resolve`
+  return (await dataApiService.get(resolveModelsPath)) as Model[]
 }
