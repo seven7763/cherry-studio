@@ -140,6 +140,13 @@
       "when": 1783568946634,
       "tag": "0019_wet_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1783691225668,
+      "tag": "0020_needy_whizzer",
+      "breakpoints": true
     }
   ],
   "version": "7"
