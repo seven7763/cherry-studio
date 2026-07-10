@@ -32,6 +32,8 @@
   --cs-foreground: #1a1c1f;
   --cs-foreground-secondary: color-mix(in srgb, var(--cs-foreground) 60%, transparent);
   --cs-foreground-muted: color-mix(in srgb, var(--cs-foreground) 40%, transparent);
+  /* Alias so the shadcn-style `text-muted-foreground` utility resolves from the public theme. */
+  --cs-muted-foreground: var(--cs-foreground-muted);
 
   /* Menu item hover/focus background — distinct from --cs-background-subtle
    * because menu rows need a bit more contrast than generic subtle surfaces. */

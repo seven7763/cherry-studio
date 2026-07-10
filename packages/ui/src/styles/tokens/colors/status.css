@@ -21,6 +21,8 @@
   --cs-success-bg: var(--cs-green-50); /* oklch(0.98 0.018 156) */
   --cs-success-bg-hover: var(--cs-green-200); /* oklch(0.93 0.081 156) */
   --cs-success-border: var(--cs-green-200); /* oklch(0.92 0.081 156) */
+  --cs-success-border-hover: var(--cs-green-300); /* oklch(0.87 0.137 155) */
+  --cs-success-active: var(--cs-green-600); /* oklch(0.62 0.169 149) */
 
   /* Status Colors - Warning */
   --cs-warning-base: var(--cs-amber-400); /* oklch(0.84 0.164 84) */
@@ -29,6 +31,7 @@
   --cs-warning-bg: var(--cs-amber-50); /* oklch(0.99 0.021 95) */
   --cs-warning-bg-hover: var(--cs-amber-100); /* oklch(0.96 0.058 96) */
   --cs-warning-border: var(--cs-amber-200); /* oklch(0.93 0.114 96) */
+  --cs-warning-border-hover: var(--cs-amber-300); /* oklch(0.88 0.153 92) */
   --cs-warning-active: var(--cs-amber-600); /* oklch(0.67 0.157 58) */
 
   /* Status Colors - Info */
@@ -38,6 +41,7 @@
   --cs-info-bg: var(--cs-blue-50); /* oklch(0.97 0.014 255) */
   --cs-info-bg-hover: var(--cs-blue-100); /* oklch(0.93 0.032 256) */
   --cs-info-border: var(--cs-blue-200); /* oklch(0.88 0.058 254) */
+  --cs-info-border-hover: var(--cs-blue-300); /* oklch(0.8 0.098 252) */
   --cs-info-active: var(--cs-blue-600); /* oklch(0.55 0.215 263) */
 }
 
@@ -60,6 +64,8 @@
   --cs-success-bg: var(--cs-green-900); /* oklch(0.39 0.09 153) */
   --cs-success-bg-hover: var(--cs-green-800); /* oklch(0.45 0.108 151) */
   --cs-success-border: var(--cs-green-700); /* oklch(0.52 0.137 150) */
+  --cs-success-border-hover: var(--cs-green-600); /* oklch(0.62 0.169 149) */
+  --cs-success-active: var(--cs-green-300); /* oklch(0.87 0.137 155) */
 
   /* Status Colors - Warning (Dark Mode) */
   --cs-warning-base: var(--cs-amber-400); /* oklch(0.84 0.164 84) */
@@ -68,6 +74,7 @@
   --cs-warning-bg: var(--cs-amber-900); /* oklch(0.41 0.105 46) */
   --cs-warning-bg-hover: var(--cs-amber-800); /* oklch(0.47 0.125 46) */
   --cs-warning-border: var(--cs-amber-700); /* oklch(0.55 0.145 49) */
+  --cs-warning-border-hover: var(--cs-amber-600); /* oklch(0.67 0.159 58) */
   --cs-warning-active: var(--cs-amber-600); /* oklch(0.67 0.157 58) */
 
   /* Status Colors - Info (Dark Mode) */
@@ -77,5 +84,6 @@
   --cs-info-bg: var(--cs-blue-900); /* oklch(0.39 0.13 265) */
   --cs-info-bg-hover: var(--cs-blue-800); /* oklch(0.44 0.17 260) */
   --cs-info-border: var(--cs-blue-700); /* oklch(0.49 0.215 264) */
+  --cs-info-border-hover: var(--cs-blue-600); /* oklch(0.54 0.215 263) */
   --cs-info-active: var(--cs-blue-300); /* oklch(0.79 0.11 254) */
 }

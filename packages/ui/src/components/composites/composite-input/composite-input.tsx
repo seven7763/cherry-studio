@@ -70,10 +70,10 @@ const inputVariants = cva(['p-0', 'h-fit', 'min-w-0'], {
 const inputWrapperVariants = cva(['flex', 'flex-1', 'items-center', 'gap-2'], {
   variants: {
     size: {
-      sm: ['p-3xs'],
+      sm: ['p-3'],
       // Why only the md size is fixed height???
-      md: ['p-3xs', 'h-5.5', 'box-content'],
-      lg: ['px-2xs', 'py-3xs']
+      md: ['p-3', 'h-5.5', 'box-content'],
+      lg: ['px-4', 'py-3']
     },
     variant: {
       default: [],
