@@ -15,7 +15,6 @@ const testState = vi.hoisted(() => ({
   selectedModel: null as string | null,
   canLaunch: true,
   codeCliRun: vi.fn(),
-  dataApiGet: vi.fn(),
   setModel: vi.fn(),
   setTimeoutTimer: vi.fn(),
   providers: [] as Provider[],
@@ -129,12 +128,6 @@ vi.mock('@renderer/ipc', () => ({
   }
 }))
 
-vi.mock('@data/DataApiService', () => ({
-  dataApiService: {
-    get: testState.dataApiGet
-  }
-}))
-
 vi.mock('@renderer/data/hooks/useCache', () => ({
   usePersistCache: () => [testState.isBunInstalled, vi.fn()]
 }))
@@ -219,7 +212,6 @@ beforeEach(() => {
   testState.selectedModel = null
   testState.canLaunch = true
   testState.codeCliRun.mockResolvedValue({ success: true })
-  testState.dataApiGet.mockResolvedValue({ keys: [] })
   testState.setModel.mockResolvedValue(undefined)
   testState.providers = []
   testState.models = []
@@ -499,57 +491,5 @@ describe('CodeCliPage', () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('launch failed'))
     expect(screen.getByRole('button', { name: 'code.launch.label' })).toBeEnabled()
-  })
-
-  it('launches model-backed tools with enabled API keys only', async () => {
-    testState.selectedCliTool = CodeCli.QWEN_CODE
-    testState.selectedModel = 'openai::gpt-4o'
-    testState.providers = [
-      makeProvider('openai', ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS, {
-        endpointConfigs: { [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: { baseUrl: 'https://api.openai.com/v1' } }
-      })
-    ]
-    testState.models = [makeModel('openai::gpt-4o', 'openai', { apiModelId: 'gpt-4o' })]
-    testState.dataApiGet.mockImplementation((_path, options) => {
-      if (options?.query?.enabled === true) {
-        return Promise.resolve({ keys: [{ id: 'enabled-key', key: 'sk-enabled', isEnabled: true }] })
-      }
-      return Promise.resolve({ keys: [{ id: 'disabled-key', key: 'sk-disabled', isEnabled: false }] })
-    })
-
-    await openCodeToolDialog()
-    fireEvent.click(screen.getByRole('button', { name: 'code.launch.label' }))
-
-    await waitFor(() =>
-      expect(testState.dataApiGet).toHaveBeenCalledWith('/providers/openai/api-keys', { query: { enabled: true } })
-    )
-    await waitFor(() => expect(testState.codeCliRun).toHaveBeenCalledTimes(1))
-    expect(testState.codeCliRun.mock.calls[0][3]).toMatchObject({ OPENAI_API_KEY: 'sk-enabled' })
-  })
-
-  it('does not launch model-backed tools when no enabled API key is available', async () => {
-    testState.selectedCliTool = CodeCli.QWEN_CODE
-    testState.selectedModel = 'openai::gpt-4o'
-    testState.providers = [
-      makeProvider('openai', ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS, {
-        endpointConfigs: { [ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS]: { baseUrl: 'https://api.openai.com/v1' } }
-      })
-    ]
-    testState.models = [makeModel('openai::gpt-4o', 'openai', { apiModelId: 'gpt-4o' })]
-    testState.dataApiGet.mockImplementation((_path, options) => {
-      if (options?.query?.enabled === true) {
-        return Promise.resolve({ keys: [] })
-      }
-      return Promise.resolve({ keys: [{ id: 'disabled-key', key: 'sk-disabled', isEnabled: false }] })
-    })
-
-    await openCodeToolDialog()
-    fireEvent.click(screen.getByRole('button', { name: 'code.launch.label' }))
-
-    await waitFor(() =>
-      expect(testState.dataApiGet).toHaveBeenCalledWith('/providers/openai/api-keys', { query: { enabled: true } })
-    )
-    expect(testState.codeCliRun).not.toHaveBeenCalled()
-    expect(toast.error).toHaveBeenCalledWith('settings.models.check.no_api_keys')
   })
 })

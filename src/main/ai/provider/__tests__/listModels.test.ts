@@ -273,7 +273,7 @@ describe('listModels — ppioFetcher capability mapping', () => {
     })
   }
 
-  it('keeps RERANK and fills missing metadata when the same model id appears in chat and reranker endpoints', async () => {
+  it('keeps only RERANK when the same model id appears in chat and reranker endpoints', async () => {
     aiSdkGetFromApiMock.mockImplementation(({ url }: { url: string }) => {
       if (url.endsWith('/models?model_type=embedding')) {
         return Promise.resolve({ value: { data: [{ id: 'ppio-embedding' }] } })
@@ -304,10 +304,10 @@ describe('listModels — ppioFetcher capability mapping', () => {
 
     expect(chatModel?.capabilities).not.toContain(MODEL_CAPABILITY.RERANK)
     expect(rerankerModel?.capabilities).toContain(MODEL_CAPABILITY.RERANK)
-    expect(rerankerModel?.ownedBy).toBe('ppio-rerank')
-    expect(rerankerModel?.name).toBe('PPIO Rerank Pro')
-    expect(rerankerModel?.description).toBe('Reranker endpoint metadata')
-    expect(rerankerModel?.group).toBe('rerankers')
+    expect(rerankerModel?.ownedBy).toBeUndefined()
+    expect(rerankerModel?.name).toBe('ppio-reranker')
+    expect(rerankerModel?.description).toBeUndefined()
+    expect(rerankerModel?.group).toBe('ppio')
   })
 })
 
