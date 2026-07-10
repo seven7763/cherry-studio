@@ -123,7 +123,7 @@ const PopupContainer = ({ id, apiKey: newApiKey, baseUrl, type, name, open, reso
           <DialogTitle className="text-(length:--font-size-body-md) text-foreground/90 leading-(--line-height-body-md)">
             {t('settings.models.provider_key_confirm_title', { provider: displayName })}
           </DialogTitle>
-          <DialogDescription className="text-(length:--font-size-body-sm) text-muted-foreground/80 leading-(--line-height-body-sm)">
+          <DialogDescription className="text-(length:--font-size-body-sm) text-muted-foreground leading-(--line-height-body-sm)">
             {confirmMessage}
           </DialogDescription>
         </DialogHeader>
