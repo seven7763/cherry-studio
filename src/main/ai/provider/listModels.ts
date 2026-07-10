@@ -437,13 +437,15 @@ const newApiFetcher: ModelFetcher = {
       responseSchema: NewApiModelsResponseSchema,
       abortSignal: signal
     })
-    return dedup(response.data, (m) => m.id).map((m: NewApiModelResponseItem) =>
-      toModel(m.id, provider, {
+    return dedup(response.data, (m) => m.id).map((m: NewApiModelResponseItem) => {
+      const endpointTypes = normalizeEndpointTypes(m.supported_endpoint_types)
+
+      return toModel(m.id, provider, {
         ownedBy: m.owned_by,
-        endpointTypes: normalizeEndpointTypes(m.supported_endpoint_types),
-        ...(m.supported_endpoint_types?.includes('jina-rerank') ? { capabilities: [MODEL_CAPABILITY.RERANK] } : {})
+        endpointTypes,
+        ...(endpointTypes?.includes(ENDPOINT_TYPE.JINA_RERANK) ? { capabilities: [MODEL_CAPABILITY.RERANK] } : {})
       })
-    )
+    })
   }
 }
 

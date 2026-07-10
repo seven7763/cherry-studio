@@ -502,14 +502,14 @@ describe('listModels — newApiFetcher rerank capability mapping', () => {
     })
   }
 
-  it('marks jina-rerank models while ignoring unknown endpoint routing metadata', async () => {
+  it('marks normalized jina-rerank models while ignoring unknown endpoint routing metadata', async () => {
     aiSdkGetFromApiMock.mockResolvedValue({
       value: {
         data: [
           {
             id: 'opaque-model-id',
             owned_by: 'new-api',
-            supported_endpoint_types: ['openai', 'jina-rerank', 'unknown-endpoint']
+            supported_endpoint_types: ['openai', ' JINA-RERANK ', 'unknown-endpoint']
           }
         ]
       }
