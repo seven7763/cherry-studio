@@ -29,10 +29,11 @@ import {
   ResourceEditDialogHost,
   type ResourceEditDialogTarget
 } from '@renderer/components/resourceCatalog/dialogs/edit'
-import { useAssistantTopicsSource } from '@renderer/hooks/resourceViewSources'
-import { useOptionalTabsContext } from '@renderer/hooks/tab'
+import type { AssistantTopicsSource } from '@renderer/hooks/resourceViewSources'
+import { useCloseConversationTabs, useOptionalTabsContext } from '@renderer/hooks/tab'
 import { useAssistantMutations, useAssistantsApi } from '@renderer/hooks/useAssistant'
 import { useConversationNavigation } from '@renderer/hooks/useConversationNavigation'
+import { useImageCaptureTargets } from '@renderer/hooks/useImageCaptureTargets'
 import { useNotesSettings } from '@renderer/hooks/useNotesSettings'
 import { usePins } from '@renderer/hooks/usePins'
 import {
@@ -44,6 +45,8 @@ import {
 } from '@renderer/hooks/useTopic'
 import { useTopicStreamStatus } from '@renderer/hooks/useTopicStreamStatus'
 import { EVENT_NAMES, EventEmitter } from '@renderer/services/EventService'
+import { popup } from '@renderer/services/popup'
+import { toast } from '@renderer/services/toast'
 import type { Topic } from '@renderer/types/topic'
 import { fetchMessagesSummary } from '@renderer/utils/aiGeneration'
 import { formatErrorMessageWithPrefix } from '@renderer/utils/error'
@@ -63,7 +66,8 @@ import {
   type TopicImageActionRequest,
   type TopicImageActionType
 } from '../../messages/topicImageActionBus'
-import type { AddNewTopicPayload } from '../../types'
+import TopicImageCaptureHost from '../../messages/TopicImageCaptureHost'
+import type { AddNewTopicPayload, AddNewTopicWithReusePayload } from '../../types'
 import {
   type AssistantGroupActionContext,
   executeAssistantGroupAction,
@@ -89,6 +93,8 @@ import {
 import { useTopicMenuActions } from './useTopicMenuActions'
 
 const logger = loggerService.withContext('Topics')
+// Let the context menu close before mounting the heavier offscreen message list.
+const IMAGE_CAPTURE_START_DELAY_MS = 160
 
 const EMPTY_COLLAPSED_TOPIC_STATE: readonly string[] = []
 const DEFAULT_TOPIC_GROUP_VISIBLE_COUNT = 5
@@ -98,11 +104,12 @@ const TOPIC_ASSISTANT_UNTAGGED_SECTION_ID = `${TOPIC_ASSISTANT_TAG_SECTION_PREFI
 
 interface Props {
   activeTopic?: Topic
+  assistantTopicsSource: AssistantTopicsSource
   assistantIdFilter?: string | null
   onActiveAssistantDeleted?: (assistantId: string) => void | Promise<void>
   onAddAssistant?: () => void | Promise<void>
   onCreateTopicAfterClear?: (payload: AddNewTopicPayload) => void | Promise<void>
-  onNewTopic?: (payload?: AddNewTopicPayload) => void | Promise<void>
+  onNewTopic?: (payload?: AddNewTopicWithReusePayload) => void | Promise<void>
   onOpenHistoryRecords?: () => void
   onSetPanePosition?: (position: TopicTabPosition) => void | Promise<void>
   panePosition?: TopicTabPosition
@@ -227,6 +234,7 @@ function AssistantGroupMoreMenu({
 
 export function Topics({
   activeTopic,
+  assistantTopicsSource,
   assistantIdFilter,
   onActiveAssistantDeleted,
   onAddAssistant,
@@ -264,6 +272,11 @@ export function Topics({
   const [topicExpansionAssistant, setTopicExpansionAssistant] = usePersistCache('ui.topic.expansion.assistant')
   const [renamingTopics] = useCache('topic.renaming')
   const [newlyRenamedTopics] = useCache('topic.newly_renamed')
+  const { queueTarget: queueImageCaptureTarget, targets: imageCaptureTargets } = useImageCaptureTargets<Topic>({
+    cancelMessage: 'Topic image export was cancelled',
+    delayMs: IMAGE_CAPTURE_START_DELAY_MS,
+    rejectPendingActions: rejectPendingTopicImageActions
+  })
   const [exportMenuOptions] = useMultiplePreferences({
     docx: 'data.export.menus.docx',
     image: 'data.export.menus.image',
@@ -308,13 +321,14 @@ export function Topics({
   } = usePins('assistant', { enabled: isAssistantDisplayMode })
   const assistantPinnedIdSet = useMemo(() => new Set(assistantPinnedIds), [assistantPinnedIds])
   const isAssistantPinActionDisabled = isAssistantPinsLoading || isAssistantPinsRefreshing || isAssistantPinsMutating
-  const { topics: apiTopics, isLoadingAll, isFullyLoaded, error } = useAssistantTopicsSource()
+  const { topics: apiTopics, isLoadingAll, isFullyLoaded, error } = assistantTopicsSource
   const {
     assistants,
     isLoading: isAssistantsLoading,
     error: assistantsError,
     refetch: refreshAssistants
   } = useAssistantsApi({ enabled: isAssistantDisplayMode })
+  const closeConversationTabs = useCloseConversationTabs()
   const { deleteAssistant } = useAssistantMutations()
   const defaultAssistant = useMemo(() => ({ name: t('chat.default.name'), emoji: DEFAULT_ASSISTANT_EMOJI }), [t])
   const listRef = useRef<HTMLDivElement>(null)
@@ -328,9 +342,9 @@ export function Topics({
   const showTopicImageExportToast = useCallback(
     (request: TopicImageActionRequest) => {
       const key = `topic-image-export:${request.id}`
-      const loadingPromise = request.promise.finally(() => window.toast.closeToast(key)).catch(() => undefined)
+      const loadingPromise = request.promise.finally(() => toast.closeToast(key)).catch(() => undefined)
 
-      window.toast.loading({
+      toast.loading({
         key,
         title: t('chat.topics.export.image_exporting_keep_page'),
         promise: loadingPromise,
@@ -338,8 +352,8 @@ export function Topics({
       })
 
       void request.promise.then(
-        () => window.toast.success(t('chat.topics.export.image_saved')),
-        () => window.toast.error(t('chat.topics.export.failed'))
+        () => toast.success(t('chat.topics.export.image_saved')),
+        () => toast.error(t('chat.topics.export.failed'))
       )
     },
     [t]
@@ -347,23 +361,17 @@ export function Topics({
 
   const handleTopicImageAction = useCallback(
     (type: TopicImageActionType, topic: Topic) => {
-      const request = requestTopicImageAction(type, topic)
+      const request = requestTopicImageAction(type, topic, { emit: false })
       if (type === 'export') {
         showTopicImageExportToast(request)
       } else {
-        void request.promise.catch(() => window.toast.error(t('common.copy_failed')))
+        void request.promise.catch(() => toast.error(t('common.copy_failed')))
       }
 
-      if (topic.id !== activeTopic?.id) {
-        setActiveTopic(topic)
-      }
+      queueImageCaptureTarget(request, topic)
     },
-    [activeTopic?.id, setActiveTopic, showTopicImageExportToast]
+    [queueImageCaptureTarget, showTopicImageExportToast, t]
   )
-
-  useEffect(() => {
-    return () => rejectPendingTopicImageActions(undefined, new Error('Topic image export was cancelled'))
-  }, [])
 
   const apiBackedTopics = useMemo(
     () =>
@@ -469,7 +477,7 @@ export function Topics({
       }
 
       void updateTopic({ ...topic, name: trimmedName, isNameManuallyEdited: true })
-      window.toast.success(t('common.saved'))
+      toast.success(t('common.saved'))
     },
     [topics, t, updateTopic]
   )
@@ -500,29 +508,26 @@ export function Topics({
       } catch (err) {
         logger.error('Failed to delete topic', { topicId: topic.id, err })
         const message = err instanceof Error ? err.message : t('chat.topics.manage.delete.error')
-        window.toast.error(message)
+        toast.error(message)
         return
       }
 
       if (topic.id !== activeTopic?.id) return
 
-      // The classic-layout right panel is scoped to a single assistant, so select that assistant's
-      // neighbouring topic instead of the global next one (which could belong to another assistant).
-      const selectionList = isRightPanel
-        ? topics.filter((candidate) => matchesAssistantFilter(candidate, assistantIdFilter))
-        : topics
-      const next = pickNeighbourAfterRemoval(selectionList, topic.id)
+      // Deleting the active topic selects a neighbour within the *same assistant* (both layouts), so
+      // we never jump to an unrelated conversation. When that assistant has no other topic left, open
+      // a fresh empty one for it instead of leaving the view stranded.
+      const assistantTopics = topics.filter((candidate) => candidate.assistantId === topic.assistantId)
+      const next = pickNeighbourAfterRemoval(assistantTopics, topic.id)
       if (next) {
         setActiveTopic(next)
         return
       }
 
-      // No neighbour left: only the classic panel auto-creates a fresh topic for the scoped assistant.
-      if (isRightPanel && selectionList.length <= 1) {
-        await onNewTopic?.({ assistantId: assistantIdFilter ?? topic.assistantId ?? null })
-      }
+      // Never let the fresh replacement reuse the topic we just deleted (stale candidate list).
+      await onNewTopic?.({ assistantId: topic.assistantId ?? null, excludeReuseTopicId: topic.id })
     },
-    [activeTopic?.id, assistantIdFilter, isRightPanel, onNewTopic, removeTopic, setActiveTopic, t, topics]
+    [activeTopic?.id, onNewTopic, removeTopic, setActiveTopic, t, topics]
   )
 
   const handleDeleteTopicClick = useCallback((topicId: string, event: MouseEvent) => {
@@ -542,14 +547,8 @@ export function Topics({
   const handleConfirmDeleteTopic = useCallback(
     async (topic: Topic, event?: MouseEvent) => {
       event?.stopPropagation()
-      if (topics.length <= 1) {
-        if (deleteTimerRef.current) {
-          clearTimeout(deleteTimerRef.current)
-          deleteTimerRef.current = null
-        }
-        setDeletingTopicId(null)
-        return
-      }
+      // Deleting the last remaining topic is allowed: handleDeleteTopicFromMenu opens a fresh empty
+      // one for the assistant afterwards, so we never strand the view on an empty list.
       if (deleteTimerRef.current) {
         clearTimeout(deleteTimerRef.current)
         deleteTimerRef.current = null
@@ -557,7 +556,7 @@ export function Topics({
       setDeletingTopicId(null)
       await handleDeleteTopicFromMenu(topic)
     },
-    [handleDeleteTopicFromMenu, topics.length]
+    [handleDeleteTopicFromMenu]
   )
 
   useEffect(
@@ -584,7 +583,7 @@ export function Topics({
         if (summaryText) {
           void updateTopic({ ...topic, name: summaryText, isNameManuallyEdited: false })
         } else if (summaryError) {
-          window.toast?.error(`${t('message.error.fetchTopicName')}: ${summaryError}`)
+          toast.error(`${t('message.error.fetchTopicName')}: ${summaryError}`)
         }
       } finally {
         finishTopicRenaming(topic.id)
@@ -736,7 +735,7 @@ export function Topics({
         await refreshAssistants()
       } catch (err) {
         logger.error('Failed to toggle assistant pin from topic group', { assistantId, err })
-        window.toast.error(t('common.error'))
+        toast.error(t('common.error'))
       }
     },
     [isAssistantPinActionDisabled, refreshAssistants, t, toggleAssistantPin]
@@ -753,7 +752,7 @@ export function Topics({
       setDeletingAssistantGroupId(assistantId)
 
       try {
-        const confirmed = await window.modal.confirm({
+        const confirmed = await popup.confirm({
           title: t('assistants.clear.title'),
           content: t('assistants.clear.content'),
           okText: t('common.delete'),
@@ -773,10 +772,10 @@ export function Topics({
         const result = await deleteTopicsByAssistantId(assistantId)
         await refreshTopics()
         await onCreateTopicAfterClear?.({ assistantId })
-        window.toast.success(t('chat.topics.manage.delete.success', { count: result.deletedCount }))
+        toast.success(t('chat.topics.manage.delete.success', { count: result.deletedCount }))
       } catch (err) {
         logger.error('Failed to delete assistant topics', { assistantId, err })
-        window.toast.error(t('chat.topics.manage.delete.error'))
+        toast.error(t('chat.topics.manage.delete.error'))
       } finally {
         deletingAssistantGroupIdRef.current = null
         setDeletingAssistantGroupId(null)
@@ -791,7 +790,7 @@ export function Topics({
 
       setDeletingAssistantId(assistantId)
       try {
-        const confirmed = await window.modal.confirm({
+        const confirmed = await popup.confirm({
           title: t('assistants.delete.title'),
           content: t('assistants.delete.content'),
           okText: t('common.delete'),
@@ -803,23 +802,25 @@ export function Topics({
         })
         if (!confirmed) return
 
-        await deleteAssistant(assistantId, { deleteTopics: true })
+        const result = await deleteAssistant(assistantId, { deleteTopics: true })
+        closeConversationTabs('assistants', result.deletedTopicIds ?? [])
         if (activeTopic?.assistantId === assistantId) {
           await onActiveAssistantDeleted?.(assistantId)
         }
 
         await refreshAssistants()
         await refreshTopics()
-        window.toast.success(t('common.delete_success'))
+        toast.success(t('common.delete_success'))
       } catch (err) {
         logger.error('Failed to delete assistant from topic group', { assistantId, err })
-        window.toast.error(formatErrorMessageWithPrefix(err, t('common.delete_failed')))
+        toast.error(formatErrorMessageWithPrefix(err, t('common.delete_failed')))
       } finally {
         setDeletingAssistantId(null)
       }
     },
     [
       activeTopic?.assistantId,
+      closeConversationTabs,
       deleteAssistant,
       deletingAssistantId,
       onActiveAssistantDeleted,
@@ -1112,7 +1113,7 @@ export function Topics({
         } catch (err) {
           setOptimisticAssistantOrderIds(null)
           logger.error('Failed to reorder assistant topic group', { activeAssistantId, err, overAssistantId })
-          window.toast.error(formatErrorMessageWithPrefix(err, t('assistants.reorder.error.failed')))
+          toast.error(formatErrorMessageWithPrefix(err, t('assistants.reorder.error.failed')))
 
           try {
             await refreshAssistants()
@@ -1283,6 +1284,9 @@ export function Topics({
         }}
         onSaved={refreshAssistants}
       />
+      {imageCaptureTargets.map(({ requestId, target: topic }) => (
+        <TopicImageCaptureHost key={requestId} topic={topic} />
+      ))}
     </>
   )
 }
@@ -1538,7 +1542,7 @@ function TopicRow({
   const showPinAction = !rowState.renaming
   const showLeadingSlot = displayMode !== 'time' && !topic.pinned
   const isConfirmingDeletion = deletingTopicId === topic.id
-  const canDeleteTopic = topicsLength > 1 && !topic.pinned
+  const canDeleteTopic = !topic.pinned
   const showDetachedStreamIndicator = isRightPanel && hasTopicStreamIndicator
   const showInlineStreamIndicator = hasTopicStreamIndicator && !showDetachedStreamIndicator
   const showDeleteOrStreamAction = showInlineStreamIndicator || canDeleteTopic
@@ -1558,7 +1562,7 @@ function TopicRow({
   const startInlineRename = useCallback(() => actions.startRename(topic.id), [actions, topic.id])
   const startMenuRename = useCallback(() => setRenameDialogOpen(true), [])
   const submitRenameDialog = useCallback((name: string) => actions.commitRename(topic.id, name), [actions, topic.id])
-  const { menuActions, handleMenuAction } = useTopicMenuActions({
+  const { getMenuActions, handleMenuAction } = useTopicMenuActions({
     exportMenuOptions,
     isActiveInCurrentTab: isActive,
     isRenaming: isRenaming(topic.id),
@@ -1652,7 +1656,7 @@ function TopicRow({
 
   return (
     <>
-      <ResourceListActionContextMenu item={topic} actions={menuActions} onAction={handleMenuAction}>
+      <ResourceListActionContextMenu item={topic} getActions={getMenuActions} onAction={handleMenuAction}>
         {row}
       </ResourceListActionContextMenu>
       <EditNameDialog

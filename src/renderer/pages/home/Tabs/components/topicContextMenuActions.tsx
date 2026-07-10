@@ -141,6 +141,10 @@ topicActionRegistry.registerCommand({
 
 topicActionRegistry.registerCommand({
   id: 'topic.save-notes',
+  availability: ({ exportMenuOptions }) => ({
+    visible: exportMenuOptions.notes,
+    enabled: exportMenuOptions.notes
+  }),
   run: ({ onSaveToNotes, topic }) => onSaveToNotes(topic)
 })
 
@@ -196,6 +200,10 @@ topicActionRegistry.registerCommand({
 
 topicActionRegistry.registerCommand({
   id: 'topic.copy.image',
+  availability: ({ exportMenuOptions }) => ({
+    visible: exportMenuOptions.image,
+    enabled: exportMenuOptions.image
+  }),
   run: ({ onCopyImage, topic }) => onCopyImage(topic)
 })
 
@@ -206,6 +214,10 @@ topicActionRegistry.registerCommand({
 
 topicActionRegistry.registerCommand({
   id: 'topic.copy.plain-text',
+  availability: ({ exportMenuOptions }) => ({
+    visible: exportMenuOptions.plain_text,
+    enabled: exportMenuOptions.plain_text
+  }),
   run: ({ onCopyPlainText, topic }) => onCopyPlainText(topic)
 })
 
@@ -443,7 +455,9 @@ topicActionRegistry.registerAction({
   order: 90,
   surface: 'menu',
   danger: true,
-  availability: ({ topic, topicsLength }) => ({ visible: topicsLength > 1 && !topic.pinned }),
+  // Deleting the last topic is allowed — the delete handler opens a fresh empty one afterwards, so
+  // the view is never stranded. Pinned topics must be unpinned before they can be deleted.
+  availability: ({ topic }) => ({ visible: !topic.pinned }),
   confirm: ({ t }) => ({
     title: t('chat.topics.manage.delete.confirm.title'),
     description: t('chat.topics.manage.delete.confirm.content', { count: 1 }),

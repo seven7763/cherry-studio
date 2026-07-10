@@ -1,3 +1,4 @@
+import { Tooltip } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import type { ResolvedAction } from '@renderer/components/chat/actions/actionTypes'
@@ -7,8 +8,11 @@ import {
 } from '@renderer/components/resourceCatalog/dialogs/edit'
 import { useMutation } from '@renderer/data/hooks/useDataApi'
 import { useAgents } from '@renderer/hooks/agent/useAgent'
-import { useAgentSessionsSource } from '@renderer/hooks/resourceViewSources'
+import type { AgentSessionsSource } from '@renderer/hooks/resourceViewSources'
+import { useCloseConversationTabs } from '@renderer/hooks/tab'
 import { usePins } from '@renderer/hooks/usePins'
+import { popup } from '@renderer/services/popup'
+import { toast } from '@renderer/services/toast'
 import { formatErrorMessageWithPrefix } from '@renderer/utils/error'
 import type { AgentSessionEntity } from '@shared/data/api/schemas/agentSessions'
 import type { AssistantIconType } from '@shared/data/preference/preferenceTypes'
@@ -21,6 +25,7 @@ import {
   buildResolvedResourceEntityMenuAction,
   type ConversationResourceMenuItem,
   renderAgentEntityIcon,
+  ResourceList,
   SessionListOptionsMenu
 } from './base'
 import { ResourceEntityRail, type ResourceEntityRailItem } from './ResourceEntityRail'
@@ -40,29 +45,31 @@ type SessionListItem = AgentSessionEntity & {
 
 type AgentResourceListProps = {
   activeAgentId?: string | null
+  agentSessionsSource: AgentSessionsSource
   onAddAgent?: () => void | Promise<void>
   onOpenHistoryRecords?: () => void
   onSelectSession: (sessionId: string, session: AgentSessionEntity) => void
   onSelectedAgentClick?: () => void | Promise<void>
-  onStartDraftAgent: (agentId: string) => void | Promise<void>
-  onStartMissingAgentDraft?: () => void | Promise<void>
+  onCreateSession: (agentId: string) => void | Promise<unknown>
+  onShowMissingAgentSelection?: () => void | Promise<void>
   resourceMenuItems?: readonly ConversationResourceMenuItem[]
   /**
    * Called after the currently-active agent is deleted so the classic-layout page can
    * settle (select the latest remaining session / clear). This is the classic
-   * layout's reset — unlike the modern layout it must NOT open the draft compose.
+   * layout's reset.
    */
   onActiveAgentDeleted?: (agentId: string) => void | Promise<void>
 }
 
 export function AgentResourceList({
   activeAgentId,
+  agentSessionsSource,
   onAddAgent,
   onOpenHistoryRecords,
   onSelectSession,
   onSelectedAgentClick,
-  onStartDraftAgent,
-  onStartMissingAgentDraft,
+  onCreateSession,
+  onShowMissingAgentSelection,
   resourceMenuItems,
   onActiveAgentDeleted
 }: AgentResourceListProps) {
@@ -81,7 +88,7 @@ export function AgentResourceList({
     isPinsLoading,
     error: sessionsError,
     reload
-  } = useAgentSessionsSource()
+  } = agentSessionsSource
   const {
     isLoading: isAgentPinsLoading,
     isRefreshing: isAgentPinsRefreshing,
@@ -89,6 +96,7 @@ export function AgentResourceList({
     pinnedIds: agentPinnedIds,
     togglePin: toggleAgentPin
   } = usePins('agent')
+  const closeConversationTabs = useCloseConversationTabs()
   const { trigger: deleteAgent } = useMutation('DELETE', '/agents/:agentId', {
     refresh: ['/agents', '/agent-sessions', '/agent-workspaces', '/pins', '/agent-channels']
   })
@@ -115,10 +123,22 @@ export function AgentResourceList({
           name: agent.name,
           orderKey: agent.orderKey,
           pinned: agentPinnedIdSet.has(agent.id),
-          icon
+          icon,
+          trailingAction: (
+            <Tooltip title={t('agent.session.new')} delay={500}>
+              <ResourceList.GroupHeaderActionButton
+                type="button"
+                aria-label={t('agent.session.new')}
+                onClick={() => {
+                  void onCreateSession(agent.id)
+                }}>
+                <SquarePen className="block" />
+              </ResourceList.GroupHeaderActionButton>
+            </Tooltip>
+          )
         }
       }),
-    [agentPinnedIdSet, agents, assistantIconType, defaultModelId]
+    [agentPinnedIdSet, agents, assistantIconType, defaultModelId, onCreateSession, t]
   )
 
   const sortSessionsForEntity = useCallback(
@@ -139,7 +159,7 @@ export function AgentResourceList({
   const handleReorderError = useCallback(
     (error: unknown) => {
       logger.error('Failed to reorder agent classic-layout rail', { error })
-      window.toast.error(formatErrorMessageWithPrefix(error, t('agent.session.reorder.error.failed')))
+      toast.error(formatErrorMessageWithPrefix(error, t('agent.session.reorder.error.failed')))
     },
     [t]
   )
@@ -153,7 +173,7 @@ export function AgentResourceList({
     isError: !!(agentsError || sessionsError),
     sortResourcesForEntity: sortSessionsForEntity,
     onPickResource: handlePickSession,
-    onStartDraft: onStartDraftAgent,
+    onCreateResource: onCreateSession,
     reorder: reorderAgentEntity,
     refetchEntities: refetchAgents,
     onReorderError: handleReorderError
@@ -172,7 +192,7 @@ export function AgentResourceList({
         await refetchAgents()
       } catch (err) {
         logger.error('Failed to toggle agent pin from classic-layout rail', { agentId, err })
-        window.toast.error(t('common.error'))
+        toast.error(t('common.error'))
       }
     },
     [isAgentPinActionDisabled, refetchAgents, t, toggleAgentPin]
@@ -184,7 +204,7 @@ export function AgentResourceList({
 
       setDeletingAgentId(agentId)
       try {
-        const confirmed = await window.modal.confirm({
+        const confirmed = await popup.confirm({
           title: t('agent.delete.title'),
           content: t('agent.delete.content'),
           okText: t('common.delete'),
@@ -196,22 +216,23 @@ export function AgentResourceList({
         })
         if (!confirmed) return
 
-        await deleteAgent({ params: { agentId }, query: { deleteSessions: true } })
+        const result = await deleteAgent({ params: { agentId }, query: { deleteSessions: true } })
+        closeConversationTabs('agents', result.deletedSessionIds ?? [])
         if (activeAgentId === agentId) {
           await onActiveAgentDeleted?.(agentId)
         }
 
         await refetchAgents()
         await reload()
-        window.toast.success(t('common.delete_success'))
+        toast.success(t('common.delete_success'))
       } catch (err) {
         logger.error('Failed to delete agent from classic-layout rail', { agentId, err })
-        window.toast.error(formatErrorMessageWithPrefix(err, t('agent.delete.error.failed')))
+        toast.error(formatErrorMessageWithPrefix(err, t('agent.delete.error.failed')))
       } finally {
         setDeletingAgentId(null)
       }
     },
-    [activeAgentId, deleteAgent, deletingAgentId, onActiveAgentDeleted, refetchAgents, reload, t]
+    [activeAgentId, closeConversationTabs, deleteAgent, deletingAgentId, onActiveAgentDeleted, refetchAgents, reload, t]
   )
 
   const getContextMenuActions = useCallback(
@@ -287,7 +308,7 @@ export function AgentResourceList({
         defaultGroupLabel={t('agent.sidebar_title')}
         addIcon={<Plus />}
         addLabel={t('agent.add.title')}
-        onAdd={onAddAgent ?? (() => onStartMissingAgentDraft?.())}
+        onAdd={onAddAgent ?? (() => onShowMissingAgentSelection?.())}
         headerActions={
           <SessionListOptionsMenu
             manageAgentsActive={manageAgentsMenuItem?.active}

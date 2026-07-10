@@ -3,6 +3,7 @@ import { actionsToCommandMenuExtraItems } from '@renderer/components/chat/action
 import type { ResolvedAction } from '@renderer/components/chat/actions/actionTypes'
 import { ResourceListActionContextMenu } from '@renderer/components/chat/actions/ResourceListActionContextMenu'
 import { CommandPopupMenu } from '@renderer/components/command'
+import ConfirmActionPopup from '@renderer/components/popups/ConfirmActionPopup'
 import { cn } from '@renderer/utils/style'
 import { History, MoreHorizontal } from 'lucide-react'
 import type { ReactNode, RefObject } from 'react'
@@ -32,6 +33,7 @@ export type ResourceEntityRailItem = {
   pinned?: boolean
   /** Single user tag name. Only consulted when the rail runs with `groupByTag`; undefined → "未分组". */
   tag?: string
+  trailingAction?: ReactNode
 }
 
 // Pinned entities float into a "已固定" section at the top; the rest sit under the "助手" / "智能体"
@@ -165,19 +167,20 @@ export function ResourceEntityRail<T extends ResourceEntityRailItem, TActionCont
     [handleItemClick, items]
   )
   const runContextMenuAction = useCallback(
-    (item: T, action: ResolvedAction<TActionContext>) => {
+    async (item: T, action: ResolvedAction<TActionContext>) => {
       if (!action.availability.enabled || !onContextMenuAction) return
 
       const confirm = action.confirm
       if (confirm) {
-        void window.modal.confirm({
+        // Confirm gates a fallible action: ConfirmActionPopup runs it in-dialog and
+        // surfaces failures (toast + retry), so a rejected action is never silent.
+        await ConfirmActionPopup.show({
           title: confirm.title,
           content: confirm.description ?? confirm.content,
           okText: confirm.confirmText,
           cancelText: confirm.cancelText,
-          centered: true,
-          okButtonProps: confirm.destructive ? { danger: true } : undefined,
-          onOk: () => onContextMenuAction(item, action)
+          danger: confirm.destructive,
+          action: () => onContextMenuAction(item, action)
         })
         return
       }
@@ -190,7 +193,8 @@ export function ResourceEntityRail<T extends ResourceEntityRailItem, TActionCont
     (item: T) => {
       const actions = getContextMenuActions?.(item) ?? []
       const hasVisibleMenuActions = !!onContextMenuAction && actions.some((action) => action.availability.visible)
-      const trailingActionCount = hasVisibleMenuActions ? 1 : 0
+      const hasTrailingAction = Boolean(item.trailingAction)
+      const trailingActionCount = (hasTrailingAction ? 1 : 0) + (hasVisibleMenuActions ? 1 : 0)
       const trailingActionPaddingClassName = getEntityRailTrailingActionPaddingClassName(trailingActionCount)
       const extraItems = hasVisibleMenuActions
         ? actionsToCommandMenuExtraItems(actions, (action) => runContextMenuAction(item, action))
@@ -210,21 +214,24 @@ export function ResourceEntityRail<T extends ResourceEntityRailItem, TActionCont
             title={item.name}>
             {item.name}
           </ResourceList.ItemTitle>
-          {hasVisibleMenuActions && (
+          {(hasTrailingAction || hasVisibleMenuActions) && (
             // Stop clicks bubbling to the row's onClick: the "more" menu portals its content out of
             // the DOM but React still routes the menu-item click up the React tree (…→ ItemActions →
             // row), which would otherwise select the entity when a menu action (e.g. edit) is picked.
             <ResourceList.ItemActions onClick={(event) => event.stopPropagation()}>
-              <Tooltip title={t('common.more')} delay={500}>
-                <CommandPopupMenu location="webcontents.context" extraItems={extraItems} align="end" side="bottom">
-                  <ResourceList.GroupHeaderActionButton
-                    type="button"
-                    aria-label={t('common.more')}
-                    onClick={(event) => event.stopPropagation()}>
-                    <MoreHorizontal className="block" />
-                  </ResourceList.GroupHeaderActionButton>
-                </CommandPopupMenu>
-              </Tooltip>
+              {hasVisibleMenuActions && (
+                <Tooltip title={t('common.more')} delay={500}>
+                  <CommandPopupMenu location="webcontents.context" extraItems={extraItems} align="end" side="bottom">
+                    <ResourceList.GroupHeaderActionButton
+                      type="button"
+                      aria-label={t('common.more')}
+                      onClick={(event) => event.stopPropagation()}>
+                      <MoreHorizontal className="block" />
+                    </ResourceList.GroupHeaderActionButton>
+                  </CommandPopupMenu>
+                </Tooltip>
+              )}
+              {item.trailingAction}
             </ResourceList.ItemActions>
           )}
         </ResourceList.Item>
