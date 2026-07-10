@@ -1,7 +1,7 @@
 /**
  * Process-agnostic message protocol for the inference host.
  *
- * The host currently runs a `worker_threads` worker (see `InferenceHost`), but
+ * The host currently runs a `worker_threads` worker (see `InferenceServiceBase`), but
  * both sides exchange only structured-clone-safe values, so the exact same
  * protocol works unchanged when the host later moves to an Electron
  * `utilityProcess` for crash isolation. Keep it free of class instances,
@@ -27,6 +27,10 @@ export interface InferenceInitMessage {
   cacheDir: string
   /** App root, used by the worker to resolve `@huggingface/transformers`. */
   appPath: string
+  /** Absolute path to the downloaded onnxruntime-node native binding — set as
+   * `CHERRY_ONNXRUNTIME_BINDING_PATH` in the worker's own env before its first lazy
+   * require of `@huggingface/transformers`/`ppu-paddle-ocr` (see OnnxRuntimeBinaryService). */
+  onnxRuntimeBindingPath: string
 }
 
 /** Load (downloading if absent) the embedding pipeline; emits progress. */
@@ -41,6 +45,18 @@ export interface EmbeddingLoadMessage {
 /** Embed texts; loads the pipeline first if it is not cached yet. */
 export interface EmbeddingEmbedMessage {
   type: 'embedding.embed'
+  id: string
+  modelRepo: string
+  dtype: string
+  source: InferenceModelSource
+  texts: string[]
+}
+
+/** Count tokens via the pipeline's own tokenizer; loads the pipeline first if
+ * it is not cached yet. Keeps token counting off the main process, which must
+ * never import `@huggingface/transformers` itself (see localEmbeddingTokenLimit.ts). */
+export interface EmbeddingCountTokensMessage {
+  type: 'embedding.countTokens'
   id: string
   modelRepo: string
   dtype: string
@@ -64,7 +80,11 @@ export interface OcrRecognizeMessage {
   imagePath: string
 }
 
-export type InferenceRequest = EmbeddingLoadMessage | EmbeddingEmbedMessage | OcrRecognizeMessage
+export type InferenceRequest =
+  | EmbeddingLoadMessage
+  | EmbeddingEmbedMessage
+  | EmbeddingCountTokensMessage
+  | OcrRecognizeMessage
 
 // -- worker → main --------------------------------------------------------
 
@@ -96,6 +116,8 @@ export interface InferenceResultMessage {
   embeddings?: number[][] | null
   /** Recognized text (`ocr.recognize`). */
   text?: string | null
+  /** Token counts, one per input text (`embedding.countTokens`). */
+  tokenCounts?: number[] | null
 }
 
 export interface InferenceErrorMessage {
