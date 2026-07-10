@@ -46,10 +46,8 @@
   --app-sidebar: var(--cs-sidebar);
   --app-sidebar-accent: oklch(0.97 0 0);
   --app-sidebar-foreground: oklch(0.145 0 0);
-  --app-sidebar-active-bg: rgba(16, 185, 129, 0.08);
-  --app-sidebar-active-border: rgba(16, 185, 129, 0.15);
-  --app-sidebar-glow-bg: rgba(16, 185, 129, 0.25);
-  --app-sidebar-glow-line: rgba(16, 185, 129, 0.5);
+  --app-sidebar-active-bg: var(--cs-selected);
+  --app-sidebar-active-border: var(--cs-selected-border);
   --app-sidebar-primary: oklch(0.205 0 0);
   --app-sidebar-primary-foreground: oklch(0.985 0 0);
   --app-sidebar-accent-foreground: oklch(0.205 0 0);
@@ -62,7 +60,7 @@
   --app-secondary-foreground: oklch(0.205 0 0);
   --app-muted-foreground: oklch(0.556 0 0);
   --app-accent-foreground: oklch(0.205 0 0);
-  --app-destructive-foreground: oklch(0.577 0.245 27.325);
+  --app-destructive-foreground: var(--cs-destructive-foreground);
   --app-input: oklch(0.922 0 0);
 
 }
@@ -74,10 +72,8 @@
   --app-sidebar: var(--cs-sidebar);
   --app-sidebar-accent: oklch(0.269 0 0);
   --app-sidebar-foreground: oklch(0.985 0 0);
-  --app-sidebar-active-bg: rgba(114, 255, 121, 0.05);
-  --app-sidebar-active-border: rgba(114, 255, 121, 0.08);
-  --app-sidebar-glow-bg: rgba(114, 255, 121, 0.15);
-  --app-sidebar-glow-line: rgba(114, 255, 121, 0.35);
+  --app-sidebar-active-bg: var(--cs-selected);
+  --app-sidebar-active-border: var(--cs-selected-border);
   --app-sidebar-primary: oklch(0.488 0.243 264.376);
   --app-sidebar-primary-foreground: oklch(0.985 0 0);
   --app-sidebar-accent-foreground: oklch(0.985 0 0);
@@ -90,7 +86,7 @@
   --app-secondary-foreground: oklch(0.985 0 0);
   --app-muted-foreground: oklch(0.708 0 0);
   --app-accent-foreground: oklch(0.985 0 0);
-  --app-destructive-foreground: oklch(0.637 0.237 25.331);
+  --app-destructive-foreground: var(--cs-destructive-foreground);
   --app-input: oklch(0.269 0 0);
 
 }
@@ -123,8 +119,6 @@
   --color-sidebar-ring: var(--app-sidebar-ring);
   --color-sidebar-active-bg: var(--app-sidebar-active-bg);
   --color-sidebar-active-border: var(--app-sidebar-active-border);
-  --color-sidebar-glow-bg: var(--app-sidebar-glow-bg);
-  --color-sidebar-glow-line: var(--app-sidebar-glow-line);
 
 }
 

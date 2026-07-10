@@ -287,7 +287,7 @@ export const ColorPickerSelection = memo(({ className, ...props }: ColorPickerSe
   return (
     <div
       className={cn(
-        'relative size-full cursor-crosshair rounded outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'relative size-full cursor-crosshair touch-none rounded outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className
       )}
       tabIndex={0}
