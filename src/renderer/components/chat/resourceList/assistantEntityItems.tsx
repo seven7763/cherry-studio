@@ -1,6 +1,7 @@
 import type { Assistant } from '@renderer/types/assistant'
 import type { AssistantIconType } from '@shared/data/preference/preferenceTypes'
 import { DEFAULT_ASSISTANT_EMOJI } from '@shared/data/presets/defaultAssistant'
+import type { ReactNode } from 'react'
 
 import { renderAssistantEntityIcon } from './base'
 import type { ResourceEntityRailItem } from './ResourceEntityRail'
@@ -14,6 +15,7 @@ interface BuildAssistantEntityItemsOptions {
   defaultAssistantName?: string
   defaultModelId?: string | null
   includeDefaultAssistant?: boolean
+  renderAssistantTrailingAction?: (assistant: Assistant) => ReactNode
 }
 
 export function buildAssistantEntityItems({
@@ -22,25 +24,31 @@ export function buildAssistantEntityItems({
   assistants,
   defaultAssistantName,
   defaultModelId,
-  includeDefaultAssistant = false
+  includeDefaultAssistant = false,
+  renderAssistantTrailingAction
 }: BuildAssistantEntityItemsOptions): ResourceEntityRailItem[] {
   const assistantPinnedIdSet = new Set(assistantPinnedIds)
-  const assistantItems: ResourceEntityRailItem[] = assistants.map((assistant) => ({
-    id: assistant.id,
-    name: assistant.name,
-    orderKey: assistant.orderKey,
-    pinned: assistantPinnedIdSet.has(assistant.id),
-    tag: assistant.tags?.[0]?.name,
-    icon: renderAssistantEntityIcon(
-      assistantIconType,
-      {
-        emoji: assistant.emoji,
-        modelId: assistant.modelId,
-        modelName: assistant.modelName
-      },
-      defaultModelId
-    )
-  }))
+  const assistantItems: ResourceEntityRailItem[] = assistants.map((assistant) => {
+    const trailingAction = renderAssistantTrailingAction?.(assistant)
+
+    return {
+      id: assistant.id,
+      name: assistant.name,
+      orderKey: assistant.orderKey,
+      pinned: assistantPinnedIdSet.has(assistant.id),
+      tag: assistant.tags?.[0]?.name,
+      ...(trailingAction !== undefined && { trailingAction }),
+      icon: renderAssistantEntityIcon(
+        assistantIconType,
+        {
+          emoji: assistant.emoji,
+          modelId: assistant.modelId,
+          modelName: assistant.modelName
+        },
+        defaultModelId
+      )
+    }
+  })
 
   const pinnedItems = assistantItems.filter((assistant) => assistant.pinned)
   const orderedItems =

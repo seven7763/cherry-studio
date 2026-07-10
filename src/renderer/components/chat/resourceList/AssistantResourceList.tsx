@@ -1,3 +1,4 @@
+import { Tooltip } from '@cherrystudio/ui'
 import { usePreference } from '@data/hooks/usePreference'
 import { loggerService } from '@logger'
 import type { ResolvedAction } from '@renderer/components/chat/actions/actionTypes'
@@ -6,7 +7,7 @@ import {
   type ResourceEditDialogTarget
 } from '@renderer/components/resourceCatalog/dialogs/edit'
 import { useMutation } from '@renderer/data/hooks/useDataApi'
-import { useAssistantTopicsSource } from '@renderer/hooks/resourceViewSources'
+import type { AssistantTopicsSource } from '@renderer/hooks/resourceViewSources'
 import { useCloseConversationTabs } from '@renderer/hooks/tab'
 import { useAssistantMutations, useAssistantsApi } from '@renderer/hooks/useAssistant'
 import { usePins } from '@renderer/hooks/usePins'
@@ -16,7 +17,7 @@ import { toast } from '@renderer/services/toast'
 import type { Topic } from '@renderer/types/topic'
 import { formatErrorMessageWithPrefix } from '@renderer/utils/error'
 import type { AssistantIconType } from '@shared/data/preference/preferenceTypes'
-import { BrushCleaning, Edit3, PinIcon, PinOffIcon, Plus, Smile, Tags, Trash2 } from 'lucide-react'
+import { BrushCleaning, Edit3, PinIcon, PinOffIcon, Plus, Smile, SquarePen, Tags, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -25,6 +26,7 @@ import {
   buildResolvedIconTypeMenuAction,
   buildResolvedResourceEntityMenuAction,
   type ConversationResourceMenuItem,
+  ResourceList,
   TopicListOptionsMenu
 } from './base'
 import { ResourceEntityRail, type ResourceEntityRailItem } from './ResourceEntityRail'
@@ -42,29 +44,31 @@ const ASSISTANT_ENTITY_DELETE_ACTION_ID = 'assistant-entity.delete'
 
 type AssistantResourceListProps = {
   activeAssistantId?: string | null
+  assistantTopicsSource: AssistantTopicsSource
   onAddAssistant?: () => void | Promise<void>
   onOpenHistoryRecords?: () => void
   onSelectTopic: (topic: Topic) => void | boolean
   onCreateTopicAfterClear?: (assistantId: string) => void | Promise<void>
   onSelectedAssistantClick?: () => void | Promise<void>
-  onStartDraftAssistant: (assistantId: string | null) => void | Promise<void>
+  onCreateTopic: (assistantId: string | null) => void | Promise<void>
   resourceMenuItems?: readonly ConversationResourceMenuItem[]
   /**
    * Called after the currently-active assistant is deleted so the classic-layout page
    * can settle (select the latest remaining topic / fall back). This is the old
-   * layout's reset and is distinct from `onStartDraftAssistant`.
+   * layout's reset and is distinct from `onCreateTopic`.
    */
   onActiveAssistantDeleted?: (assistantId: string) => void | Promise<void>
 }
 
 export function AssistantResourceList({
   activeAssistantId,
+  assistantTopicsSource,
   onAddAssistant,
   onOpenHistoryRecords,
   onSelectTopic,
   onCreateTopicAfterClear,
   onSelectedAssistantClick,
-  onStartDraftAssistant,
+  onCreateTopic,
   resourceMenuItems,
   onActiveAssistantDeleted
 }: AssistantResourceListProps) {
@@ -87,7 +91,7 @@ export function AssistantResourceList({
     isLoadingAll: isTopicsLoadingAll,
     isFullyLoaded: isTopicsFullyLoaded,
     error: topicsError
-  } = useAssistantTopicsSource()
+  } = assistantTopicsSource
   const { isLoading: isTopicPinsLoading, pinnedIds: topicPinnedIds } = usePins('topic')
   const {
     isLoading: isAssistantPinsLoading,
@@ -118,6 +122,10 @@ export function AssistantResourceList({
     topicsRef.current = topics
   }, [topics])
 
+  const handleCreateTopic = useCallback(
+    (assistantId: string) => onCreateTopic(assistantId === DEFAULT_ASSISTANT_ENTITY_ID ? null : assistantId),
+    [onCreateTopic]
+  )
   const entities = useMemo<ResourceEntityRailItem[]>(() => {
     const hasDefaultAssistantTopics = topics.some((topic) => !topic.assistantId)
     return buildAssistantEntityItems({
@@ -126,9 +134,21 @@ export function AssistantResourceList({
       assistants,
       defaultAssistantName: t('chat.default.name'),
       defaultModelId,
-      includeDefaultAssistant: hasDefaultAssistantTopics
+      includeDefaultAssistant: hasDefaultAssistantTopics,
+      renderAssistantTrailingAction: (assistant) => (
+        <Tooltip title={t('chat.conversation.new')} delay={500}>
+          <ResourceList.GroupHeaderActionButton
+            type="button"
+            aria-label={t('chat.conversation.new')}
+            onClick={() => {
+              void handleCreateTopic(assistant.id)
+            }}>
+            <SquarePen className="block" />
+          </ResourceList.GroupHeaderActionButton>
+        </Tooltip>
+      )
     })
-  }, [assistantIconType, assistantPinnedIds, assistants, defaultModelId, t, topics])
+  }, [assistantIconType, assistantPinnedIds, assistants, defaultModelId, handleCreateTopic, t, topics])
 
   const sortTopicsForEntity = useCallback(
     (entityTopics: Topic[]) => sortResourceItemsByPinnedTime(entityTopics, new Date()),
@@ -152,10 +172,6 @@ export function AssistantResourceList({
     [t]
   )
 
-  const handleStartDraftAssistant = useCallback(
-    (assistantId: string) => onStartDraftAssistant(assistantId === DEFAULT_ASSISTANT_ENTITY_ID ? null : assistantId),
-    [onStartDraftAssistant]
-  )
   const { items, listStatus, selectedId, handleSelect, handleReorder } = useResourceEntityRail({
     entities,
     resources: topics,
@@ -165,7 +181,7 @@ export function AssistantResourceList({
     isError: !!(assistantsError || topicsError),
     sortResourcesForEntity: sortTopicsForEntity,
     onPickResource: onSelectTopic,
-    onStartDraft: handleStartDraftAssistant,
+    onCreateResource: handleCreateTopic,
     reorder: reorderAssistant,
     refetchEntities: refreshAssistants,
     onReorderError: handleReorderError
@@ -424,7 +440,7 @@ export function AssistantResourceList({
         groupByTag={isTagGrouping}
         addIcon={<Plus />}
         addLabel={t('chat.add.assistant.title')}
-        onAdd={onAddAssistant ?? (() => onStartDraftAssistant(null))}
+        onAdd={onAddAssistant ?? (() => onCreateTopic(null))}
         headerActions={
           <TopicListOptionsMenu
             manageAssistantsActive={manageAssistantsMenuItem?.active}
